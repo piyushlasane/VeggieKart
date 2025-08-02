@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "715578748864",
+    "project_id": "veggies-kart",
+    "storage_bucket": "veggies-kart.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:715578748864:android:be73d06d3459f57759a225",
+        "android_client_info": {
+          "package_name": "com.project.veggiekart"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDfNaoSpj6Y8wNAjA7UDSU0lZrOyHv9P-Y"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
