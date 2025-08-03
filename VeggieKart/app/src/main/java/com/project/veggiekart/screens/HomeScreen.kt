@@ -18,10 +18,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavHostController
 import com.project.veggiekart.pages.CategoriesPage
 import com.project.veggiekart.pages.HomePage
-import com.project.veggiekart.pages.ProfilePage
 import com.project.veggiekart.pages.ReorderPage
 
 @Composable
@@ -30,7 +31,6 @@ fun HomeScreen(modifier: Modifier = Modifier, navcontroller: NavHostController) 
         NavItem("Home", Icons.Default.Home),
         NavItem("Categories", Icons.AutoMirrored.Filled.List),
         NavItem("Cart", Icons.Default.ShoppingCart),
-        NavItem("Profile", Icons.Default.Person)
     )
 
     var selectedIndex by remember { mutableStateOf(0) }
@@ -66,7 +66,6 @@ fun ContentScreen(modifier: Modifier = Modifier, selectedIndex: Int) {
         0 -> HomePage(modifier)
         1 -> CategoriesPage(modifier)
         2 -> ReorderPage(modifier)
-        3 -> ProfilePage(modifier)
     }
 }
 
@@ -74,3 +73,9 @@ data class NavItem(
     val label: String,
     val icon: ImageVector
 )
+
+@Preview(showBackground = true)
+@Composable
+fun HomeScreenPreview() {
+    HomeScreen(navcontroller = NavHostController(LocalContext.current))
+}

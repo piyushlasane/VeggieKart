@@ -10,6 +10,7 @@ import com.google.firebase.auth.auth
 import com.project.veggiekart.screens.AuthScreen
 import com.project.veggiekart.screens.LoginScreen
 import com.project.veggiekart.screens.HomeScreen
+import com.project.veggiekart.screens.ProfileScreen
 
 @Composable
 fun AppNavigation(modifier: Modifier = Modifier) {
@@ -28,6 +29,9 @@ fun AppNavigation(modifier: Modifier = Modifier) {
         }
         composable("home"){
             HomeScreen(modifier, navController)
+        }
+        composable("profile"){
+            ProfileScreen(modifier, navController)
         }
     }
 }

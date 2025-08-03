@@ -42,9 +42,13 @@ class AuthViewModel : ViewModel() {
         }
     }
 
-    fun updateShowOtp(value: Boolean) { showOtp = value }
+    fun updateShowOtp(value: Boolean) {
+        showOtp = value
+    }
 
-    fun updateLoading(value: Boolean) { isLoading = value }
+    fun updateLoading(value: Boolean) {
+        isLoading = value
+    }
 
     private val auth: FirebaseAuth = FirebaseAuth.getInstance()
     private val firestore: FirebaseFirestore = FirebaseFirestore.getInstance()

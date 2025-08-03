@@ -1,5 +1,6 @@
 package com.project.veggiekart.screens
 
+import android.app.Activity
 import androidx.activity.ComponentActivity
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
@@ -14,9 +15,9 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SnackbarHost
@@ -30,10 +31,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
@@ -48,7 +49,6 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.project.veggiekart.R
-import com.project.veggiekart.ui.theme.Purple
 import com.project.veggiekart.viewmodel.AuthViewModel
 import kotlinx.coroutines.launch
 
@@ -63,6 +63,7 @@ fun LoginScreen(modifier: Modifier = Modifier, navController: NavHostController)
     val otpValues = authViewModel.otpValues
     val keyboardController = LocalSoftwareKeyboardController.current
     val focusRequesters = List(otpLength) { FocusRequester() }
+    val context = LocalContext.current
 
     // ViewModel and snackbar
     val snackbarHostState = remember { SnackbarHostState() }
@@ -72,7 +73,7 @@ fun LoginScreen(modifier: Modifier = Modifier, navController: NavHostController)
         Column(
             modifier = modifier
                 .fillMaxSize()
-                .padding(horizontal = 32.dp, vertical = 16.dp),
+                .padding(horizontal = 32.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Top
         ) {
@@ -113,7 +114,7 @@ fun LoginScreen(modifier: Modifier = Modifier, navController: NavHostController)
                         authViewModel.updateLoading(true)
                         authViewModel.sendOtp(
                             phoneNumber = mobileNumber,
-                            activity = (navController.context as ComponentActivity)
+                            activity = context as Activity
                         ) { success, message ->
                             authViewModel.updateLoading(false)
                             scope.launch { snackbarHostState.showSnackbar(message) }
@@ -124,9 +125,7 @@ fun LoginScreen(modifier: Modifier = Modifier, navController: NavHostController)
                     modifier = Modifier
                         .width(150.dp)
                         .height(45.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Purple, contentColor = Color.White
-                    )
+                    shape = RoundedCornerShape(16.dp),
                 ) {
                     if (isLoading) {
                         CircularProgressIndicator(
@@ -201,6 +200,7 @@ fun LoginScreen(modifier: Modifier = Modifier, navController: NavHostController)
                             }
                         }
                     },
+                    shape = RoundedCornerShape(16.dp),
                     enabled = otpValues.all { it.isNotEmpty() } && !isLoading,
                     modifier = Modifier
                         .width(250.dp)
