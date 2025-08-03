@@ -16,6 +16,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.ModifierLocalBeyondBoundsLayout
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
@@ -50,7 +51,9 @@ fun BannerView(modifier: Modifier = Modifier) {
             AsyncImage(
                 model = bannerList.get(it),
                 contentDescription = "Banner Image",
+                contentScale = ContentScale.FillBounds,
                 modifier = Modifier.fillMaxWidth()
+                    .height(130.dp)
                     .clip(RoundedCornerShape(16.dp))
             )
         }
@@ -61,7 +64,7 @@ fun BannerView(modifier: Modifier = Modifier) {
             dotCount = bannerList.size,
             type = ShiftIndicatorType(DotGraphic(
                 color = MaterialTheme.colorScheme.primary,
-                size = 6.dp
+                size = 5.dp
             )),
             pagerState = pagerState
         )
