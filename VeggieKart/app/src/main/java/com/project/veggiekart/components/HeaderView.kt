@@ -25,16 +25,14 @@ import androidx.compose.ui.unit.sp
 
 @Composable
 fun HeaderView(modifier: Modifier = Modifier) {
-    Column(
-        modifier = modifier.fillMaxSize()
-    ) {
+    Column {
         Row(
-            modifier = modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
             Row(
-                modifier = modifier.clickable { },
+                modifier = Modifier.clickable { },
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Icon(
