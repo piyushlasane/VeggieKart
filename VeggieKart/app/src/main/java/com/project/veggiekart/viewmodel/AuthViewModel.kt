@@ -1,6 +1,10 @@
 package com.project.veggiekart.viewmodel
 
 import android.app.Activity
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.FirebaseException
@@ -13,6 +17,34 @@ import kotlinx.coroutines.launch
 import java.util.concurrent.TimeUnit
 
 class AuthViewModel : ViewModel() {
+
+    var mobileNumber by mutableStateOf("")
+        private set
+
+    var showOtp by mutableStateOf(false)
+        private set
+
+    var isLoading by mutableStateOf(false)
+        private set
+
+    var otpValues = mutableStateListOf<String>().apply { repeat(6) { add("") } }
+        private set
+
+    fun updateMobileNumber(input: String) {
+        if (input.length <= 10 && input.all { it.isDigit() }) {
+            mobileNumber = input
+        }
+    }
+
+    fun updateOtpAt(index: Int, value: String) {
+        if (value.length <= 1 && value.all { it.isDigit() }) {
+            otpValues[index] = value
+        }
+    }
+
+    fun updateShowOtp(value: Boolean) { showOtp = value }
+
+    fun updateLoading(value: Boolean) { isLoading = value }
 
     private val auth: FirebaseAuth = FirebaseAuth.getInstance()
     private val firestore: FirebaseFirestore = FirebaseFirestore.getInstance()

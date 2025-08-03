@@ -5,6 +5,8 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.google.firebase.Firebase
+import com.google.firebase.auth.auth
 import com.project.veggiekart.screens.AuthScreen
 import com.project.veggiekart.screens.LoginScreen
 import com.project.veggiekart.screens.HomeScreen
@@ -14,14 +16,17 @@ fun AppNavigation(modifier: Modifier = Modifier) {
 
     val navController = rememberNavController()
 
-    NavHost(navController = navController, startDestination = "auth") {
+    val isLoggedIn = Firebase.auth.currentUser != null
+    val firstPage = if (isLoggedIn) "home" else "auth"
+
+    NavHost(navController = navController, startDestination = firstPage) {
         composable("auth"){
             AuthScreen(modifier, navController)
         }
         composable("login"){
             LoginScreen(modifier, navController)
         }
-        composable("homescreen"){
+        composable("home"){
             HomeScreen(modifier, navController)
         }
     }

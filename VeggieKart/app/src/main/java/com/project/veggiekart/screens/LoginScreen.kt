@@ -3,30 +3,29 @@ package com.project.veggiekart.screens
 import androidx.activity.ComponentActivity
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -50,167 +49,182 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.project.veggiekart.R
 import com.project.veggiekart.ui.theme.Purple
-import com.project.veggiekart.ui.theme.Purple40
-import com.project.veggiekart.ui.theme.Purple80
-import com.project.veggiekart.ui.theme.VeggieGreen
 import com.project.veggiekart.viewmodel.AuthViewModel
 import kotlinx.coroutines.launch
 
 @Composable
 fun LoginScreen(modifier: Modifier = Modifier, navController: NavHostController) {
 
-    var mobileNumber by remember { mutableStateOf("") }
-    var showOtp by remember { mutableStateOf(false) }
-
+    val authViewModel: AuthViewModel = viewModel()
+    val mobileNumber = authViewModel.mobileNumber
+    val showOtp = authViewModel.showOtp
+    val isLoading = authViewModel.isLoading
     val otpLength = 6
-    val otpValues = remember { mutableStateListOf(*Array(otpLength) { "" }) }
+    val otpValues = authViewModel.otpValues
+    val keyboardController = LocalSoftwareKeyboardController.current
     val focusRequesters = List(otpLength) { FocusRequester() }
-    LocalSoftwareKeyboardController.current
 
     // ViewModel and snackbar
-    val authViewModel: AuthViewModel = viewModel()
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
-    var verificationInProgress by remember { mutableStateOf(false) }
 
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(32.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Top
-    ) {
-        // Snackbar for messages
-        SnackbarHost(hostState = snackbarHostState)
+    Box(modifier = modifier.fillMaxSize()) {
+        Column(
+            modifier = modifier
+                .fillMaxSize()
+                .padding(horizontal = 32.dp, vertical = 16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Top
+        ) {
 
-        Text(
-            text = "Login / Signup", modifier = Modifier.fillMaxWidth(), style = TextStyle(
-                textAlign = TextAlign.Center,
-                fontSize = 18.sp,
-                fontFamily = FontFamily(Font(R.font.dmsans_bold))
-            )
-        )
-
-        Spacer(Modifier.height(16.dp))
-
-        Image(
-            painter = painterResource(R.drawable.login_banner),
-            contentDescription = "Login Banner",
-        )
-
-        Spacer(Modifier.height(16.dp))
-
-        OutlinedTextField(
-            modifier = Modifier.fillMaxWidth(),
-            value = mobileNumber,
-            onValueChange = { input ->
-                if (input.length <= 10 && input.all { it.isDigit() }) {
-                    mobileNumber = input
-                }
-            },
-            label = { Text("Mobile Number (+91)") },
-            singleLine = true,
-            keyboardOptions = KeyboardOptions(
-                keyboardType = KeyboardType.Number, imeAction = ImeAction.Done
-            )
-        )
-
-        Spacer(Modifier.height(16.dp))
-
-        if (!showOtp) {
-            Button(
-                onClick = {
-                    verificationInProgress = true
-                    authViewModel.sendOtp(
-                        phoneNumber = mobileNumber,
-                        activity = (navController.context as ComponentActivity)
-                    ) { success, message ->
-                        verificationInProgress = false
-                        scope.launch { snackbarHostState.showSnackbar(message) }
-                        if (success) showOtp = true
-                    }
-                }, enabled = mobileNumber.length == 10 && !verificationInProgress,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Purple,
-                    contentColor = Color.White
+            Text(
+                text = "Login / Signup", modifier = Modifier.fillMaxWidth(), style = TextStyle(
+                    textAlign = TextAlign.Center,
+                    fontSize = 18.sp,
+                    fontFamily = FontFamily(Font(R.font.dmsans_bold))
                 )
-            ) { Text("Send OTP", fontWeight = FontWeight.SemiBold) }
-        } else {
-            // OTP UI
-            Row(
+            )
+
+            Spacer(Modifier.height(16.dp))
+
+            Image(
+                painter = painterResource(R.drawable.login_banner),
+                contentDescription = "Login Banner",
+            )
+
+            Spacer(Modifier.height(16.dp))
+
+            OutlinedTextField(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly
-            ) {
-                otpValues.forEachIndexed { index, value ->
-                    OutlinedTextField(
-                        value = value,
-                        onValueChange = { input ->
-                            if (input.length <= 1 && input.all { it.isDigit() }) {
-                                otpValues[index] = input
-                                if (input.isNotEmpty() && index < otpLength - 1) {
-                                    focusRequesters[index + 1].requestFocus()
+                value = mobileNumber,
+                onValueChange = { authViewModel.updateMobileNumber(it) },
+                label = { Text("Mobile Number (+91)") },
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Number, imeAction = ImeAction.Done
+                )
+            )
+
+            Spacer(Modifier.height(16.dp))
+
+            if (!showOtp) {
+                Button(
+                    onClick = {
+                        authViewModel.updateLoading(true)
+                        authViewModel.sendOtp(
+                            phoneNumber = mobileNumber,
+                            activity = (navController.context as ComponentActivity)
+                        ) { success, message ->
+                            authViewModel.updateLoading(false)
+                            scope.launch { snackbarHostState.showSnackbar(message) }
+                            if (success) authViewModel.updateShowOtp(true)
+                        }
+                    },
+                    enabled = mobileNumber.length == 10 && !isLoading,
+                    modifier = Modifier
+                        .width(150.dp)
+                        .height(45.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Purple, contentColor = Color.White
+                    )
+                ) {
+                    if (isLoading) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(20.dp), strokeWidth = 2.dp
+                        )
+                    } else {
+                        Text("Send OTP", fontWeight = FontWeight.SemiBold)
+                    }
+                }
+            } else {
+                // OTP UI
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceEvenly
+                ) {
+                    otpValues.forEachIndexed { index, value ->
+                        OutlinedTextField(
+                            value = value,
+                            onValueChange = { input ->
+                                if (input.length <= 1 && input.all { it.isDigit() }) {
+                                    authViewModel.updateOtpAt(index, input)
+                                    if (input.isNotEmpty() && index < otpLength - 1) {
+                                        focusRequesters[index + 1].requestFocus()
+                                    }
                                 }
-                            }
-                        },
-                        modifier = Modifier
-                            .weight(1f)
-                            .focusRequester(focusRequesters[index])
-                            .onPreviewKeyEvent { keyEvent ->
-                                if (keyEvent.type == androidx.compose.ui.input.key.KeyEventType.KeyDown && keyEvent.key == androidx.compose.ui.input.key.Key.Backspace) {
-                                    // If current box is empty, go back
-                                    if (otpValues[index].isEmpty() && index > 0) {
-                                        focusRequesters[index - 1].requestFocus()
-                                        otpValues[index - 1] = "" // also clear previous value
-                                        true
+                            },
+                            modifier = Modifier
+                                .weight(1f)
+                                .focusRequester(focusRequesters[index])
+                                .onPreviewKeyEvent { keyEvent ->
+                                    if (keyEvent.type == androidx.compose.ui.input.key.KeyEventType.KeyDown && keyEvent.key == androidx.compose.ui.input.key.Key.Backspace) {
+                                        // If current box is empty, go back
+                                        if (otpValues[index].isEmpty() && index > 0) {
+                                            focusRequesters[index - 1].requestFocus()
+                                            otpValues[index - 1] = "" // also clear previous value
+                                            true
+                                        } else {
+                                            false
+                                        }
                                     } else {
                                         false
                                     }
-                                } else {
-                                    false
-                                }
-                            },
-                        textStyle = TextStyle(
-                            textAlign = TextAlign.Center,
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.SemiBold
-                        ),
-                        singleLine = true,
-                        keyboardOptions = KeyboardOptions(
-                            keyboardType = KeyboardType.Number, imeAction = ImeAction.Done
+                                },
+                            textStyle = TextStyle(
+                                textAlign = TextAlign.Center,
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.SemiBold
+                            ),
+                            singleLine = true,
+                            keyboardOptions = KeyboardOptions(
+                                keyboardType = KeyboardType.Number, imeAction = ImeAction.Done
+                            )
                         )
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                }
-            }
-
-            Spacer(Modifier.height(24.dp))
-
-            Button(
-                onClick = {
-                val enteredOtp = otpValues.joinToString("")
-                verificationInProgress = true
-                authViewModel.verifyOtp(enteredOtp) { success, message ->
-                    verificationInProgress = false
-                    scope.launch { snackbarHostState.showSnackbar(message) }
-                    if (success) {
-                        navController.navigate("homescreen") {
-                            popUpTo("loginscreen") { inclusive = true }
-                        }
+                        Spacer(modifier = Modifier.width(4.dp))
                     }
                 }
-            },
-                enabled = otpValues.all { it.isNotEmpty() } && !verificationInProgress,
-                modifier = Modifier
-                    .width(250.dp)
-                    .height(45.dp)) {
-                Text(
-                    "Verify & Proceed", fontSize = 16.sp
-                )
-            }
 
-            LaunchedEffect(Unit) {
-                focusRequesters[0].requestFocus()
+                Spacer(Modifier.height(24.dp))
+
+                Button(
+                    onClick = {
+                        keyboardController?.hide()
+                        val enteredOtp = otpValues.joinToString("")
+                        authViewModel.updateLoading(true)
+                        authViewModel.verifyOtp(enteredOtp) { success, message ->
+                            authViewModel.updateLoading(false)
+                            scope.launch { snackbarHostState.showSnackbar(message) }
+                            if (success) {
+                                navController.navigate("home") {
+                                    popUpTo("auth") { inclusive = true }
+                                }
+                            }
+                        }
+                    },
+                    enabled = otpValues.all { it.isNotEmpty() } && !isLoading,
+                    modifier = Modifier
+                        .width(250.dp)
+                        .height(45.dp)) {
+                    if (isLoading) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(20.dp), strokeWidth = 2.dp
+                        )
+                    } else {
+                        Text("Verify & Proceed", fontSize = 16.sp)
+                    }
+                }
+
+                LaunchedEffect(Unit) {
+                    focusRequesters[0].requestFocus()
+                }
             }
         }
+        // Snackbar for messages
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .imePadding()
+        )
     }
 }

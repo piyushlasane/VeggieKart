@@ -83,7 +83,7 @@ fun AuthScreen(modifier: Modifier = Modifier, navController: NavHostController) 
         Spacer(modifier = Modifier.height(12.dp))
         OutlinedButton (
             onClick = {
-                navController.navigate("homescreen")
+                navController.navigate("home")
             },
             modifier = Modifier.fillMaxWidth().height(54.dp),
             colors = ButtonDefaults.outlinedButtonColors(
