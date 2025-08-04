@@ -21,6 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.project.veggiekart.GloabalNavigation
 
 @Composable
 fun HeaderView(modifier: Modifier = Modifier) {
@@ -51,7 +52,9 @@ fun HeaderView(modifier: Modifier = Modifier) {
                     modifier = Modifier.size(16.dp)
                 )
             }
-            IconButton(onClick = {}) {
+            IconButton(onClick = {
+                GloabalNavigation.navController.navigate("profile")
+            }) {
                 Icon(
                     imageVector = Icons.Outlined.AccountCircle,
                     contentDescription = "Your Account or Profile"

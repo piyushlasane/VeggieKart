@@ -1,5 +1,6 @@
 package com.project.veggiekart.components
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -28,6 +29,7 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.firestore
+import com.project.veggiekart.GloabalNavigation
 import com.project.veggiekart.model.CategoryModel
 
 @Composable
@@ -76,7 +78,10 @@ fun CategoriesView(modifier: Modifier = Modifier) {
 fun CategoryItem(category: CategoryModel, modifier: Modifier) {
 
     Card (
-        modifier = Modifier.size(150.dp),
+        modifier = Modifier.size(150.dp)
+            .clickable{
+                GloabalNavigation.navController.navigate("category-products/"+category.id)
+            },
         shape = RoundedCornerShape(12.dp),
         elevation = CardDefaults.cardElevation(4.dp),
         colors = CardDefaults.cardColors(MaterialTheme.colorScheme.surfaceContainer)

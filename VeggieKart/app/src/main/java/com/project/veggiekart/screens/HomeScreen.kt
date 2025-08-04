@@ -16,7 +16,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -32,34 +32,27 @@ fun HomeScreen(modifier: Modifier = Modifier, navcontroller: NavHostController) 
     val navItemList = listOf(
         NavItem("Home", Icons.Filled.Home, Icons.Outlined.Home),
         NavItem("Categories", Icons.Filled.Widgets, Icons.Outlined.Widgets),
-        NavItem("Cart", Icons.Filled.Cached, Icons.Outlined.Cached),
+        NavItem("Re-Order", Icons.Filled.Cached, Icons.Outlined.Cached),
     )
 
-    var selectedIndex by remember { mutableStateOf(0) }
+    var selectedIndex by rememberSaveable { mutableStateOf(0) }
 
     Scaffold(
         bottomBar = {
             NavigationBar {
                 navItemList.forEachIndexed { index, navItem ->
-                    NavigationBarItem(
-                        selected = selectedIndex == index,
-                        onClick = {
-                            selectedIndex = index
-                        },
-                        label = {
-                            Text(navItem.label)
-                        },
+                    NavigationBarItem(selected = selectedIndex == index,
+                        onClick = { selectedIndex = index },
+                        label = { Text(navItem.label) },
                         icon = {
-                            Icon(
-                                imageVector = if(selectedIndex == index) navItem.selectedIcon else navItem.unSelectedIcon,
-                                contentDescription = navItem.label
-                            )
-                        }
-                    )
+                        Icon(
+                            imageVector = if (selectedIndex == index) navItem.selectedIcon else navItem.unSelectedIcon,
+                            contentDescription = navItem.label
+                        )
+                    })
                 }
             }
-        }
-    ) {
+        }) {
         ContentScreen(modifier = modifier.padding(it), selectedIndex)
     }
 
@@ -75,9 +68,7 @@ fun ContentScreen(modifier: Modifier = Modifier, selectedIndex: Int) {
 }
 
 data class NavItem(
-    val label: String,
-    val selectedIcon: ImageVector,
-    val unSelectedIcon: ImageVector
+    val label: String, val selectedIcon: ImageVector, val unSelectedIcon: ImageVector
 )
 
 @Preview(showBackground = true)
