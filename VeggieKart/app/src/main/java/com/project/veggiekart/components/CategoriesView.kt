@@ -54,7 +54,7 @@ fun CategoriesView(modifier: Modifier = Modifier) {
         categoryList.value.chunked(2).forEach { rowItems ->
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(20.dp)
+                horizontalArrangement = Arrangement.SpaceAround
             ) {
                 rowItems.forEach { item ->
                     CategoryItem(

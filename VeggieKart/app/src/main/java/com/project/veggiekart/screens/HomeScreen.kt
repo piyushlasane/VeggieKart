@@ -2,10 +2,14 @@ package com.project.veggiekart.screens
 
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.ShoppingCart
+import androidx.compose.material.icons.filled.Reorder
+import androidx.compose.material.icons.filled.ShoppingBasket
+import androidx.compose.material.icons.filled.Widgets
+import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.Reorder
+import androidx.compose.material.icons.outlined.ShoppingBasket
+import androidx.compose.material.icons.outlined.Widgets
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -28,9 +32,9 @@ import com.project.veggiekart.pages.ReorderPage
 @Composable
 fun HomeScreen(modifier: Modifier = Modifier, navcontroller: NavHostController) {
     val navItemList = listOf(
-        NavItem("Home", Icons.Default.Home),
-        NavItem("Categories", Icons.AutoMirrored.Filled.List),
-        NavItem("Cart", Icons.Default.ShoppingCart),
+        NavItem("Home", Icons.Filled.Home, Icons.Outlined.Home),
+        NavItem("Categories", Icons.Filled.Widgets, Icons.Outlined.Widgets),
+        NavItem("Cart", Icons.Filled.ShoppingBasket, Icons.Outlined.ShoppingBasket),
     )
 
     var selectedIndex by remember { mutableStateOf(0) }
@@ -48,7 +52,10 @@ fun HomeScreen(modifier: Modifier = Modifier, navcontroller: NavHostController) 
                             Text(navItem.label)
                         },
                         icon = {
-                            Icon(imageVector = navItem.icon, contentDescription = navItem.label)
+                            Icon(
+                                imageVector = if(selectedIndex == index) navItem.selectedIcon else navItem.unSelectedIcon,
+                                contentDescription = navItem.label
+                            )
                         }
                     )
                 }
@@ -71,7 +78,8 @@ fun ContentScreen(modifier: Modifier = Modifier, selectedIndex: Int) {
 
 data class NavItem(
     val label: String,
-    val icon: ImageVector
+    val selectedIcon: ImageVector,
+    val unSelectedIcon: ImageVector
 )
 
 @Preview(showBackground = true)

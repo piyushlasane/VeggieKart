@@ -68,4 +68,6 @@ dependencies {
     implementation(libs.coil.compose)
     implementation(libs.dotsindicator)
 
+    implementation(libs.androidx.material.icons.extended)
+
 }

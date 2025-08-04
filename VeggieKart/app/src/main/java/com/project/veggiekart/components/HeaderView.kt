@@ -5,14 +5,13 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.outlined.AccountCircle
+import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
@@ -36,7 +35,7 @@ fun HeaderView(modifier: Modifier = Modifier) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Icon(
-                    imageVector = Icons.Default.LocationOn,
+                    imageVector = Icons.Outlined.LocationOn,
                     contentDescription = "Select Location",
                     modifier = Modifier.size(16.dp)
                 )
@@ -54,7 +53,7 @@ fun HeaderView(modifier: Modifier = Modifier) {
             }
             IconButton(onClick = {}) {
                 Icon(
-                    imageVector = Icons.Default.Person,
+                    imageVector = Icons.Outlined.AccountCircle,
                     contentDescription = "Your Account or Profile"
                 )
             }
