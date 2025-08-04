@@ -20,6 +20,6 @@ fun ProfileScreen(modifier: Modifier = Modifier, navController: NavHostControlle
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Text("Profile Page")
+        Text("Profile Screen")
     }
 }

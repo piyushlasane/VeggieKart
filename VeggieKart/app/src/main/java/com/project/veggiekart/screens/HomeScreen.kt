@@ -2,13 +2,11 @@ package com.project.veggiekart.screens
 
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Cached
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Reorder
-import androidx.compose.material.icons.filled.ShoppingBasket
 import androidx.compose.material.icons.filled.Widgets
+import androidx.compose.material.icons.outlined.Cached
 import androidx.compose.material.icons.outlined.Home
-import androidx.compose.material.icons.outlined.Reorder
-import androidx.compose.material.icons.outlined.ShoppingBasket
 import androidx.compose.material.icons.outlined.Widgets
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
@@ -34,7 +32,7 @@ fun HomeScreen(modifier: Modifier = Modifier, navcontroller: NavHostController) 
     val navItemList = listOf(
         NavItem("Home", Icons.Filled.Home, Icons.Outlined.Home),
         NavItem("Categories", Icons.Filled.Widgets, Icons.Outlined.Widgets),
-        NavItem("Cart", Icons.Filled.ShoppingBasket, Icons.Outlined.ShoppingBasket),
+        NavItem("Cart", Icons.Filled.Cached, Icons.Outlined.Cached),
     )
 
     var selectedIndex by remember { mutableStateOf(0) }
