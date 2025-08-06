@@ -1,15 +1,17 @@
 package com.project.veggiekart.components
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.outlined.ShoppingCart
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -27,15 +29,20 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import com.project.veggiekart.GloabalNavigation
 import com.project.veggiekart.model.ProductModel
 
 @Composable
 fun ProductItemView(modifier: Modifier = Modifier, product: ProductModel) {
     Card(
-        modifier = modifier.padding(8.dp),
+        modifier = modifier
+            .padding(8.dp)
+            .clickable {
+                GloabalNavigation.navController.navigate("product-details/"+product.id)
+            },
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
-        elevation = CardDefaults.cardElevation(8.dp)
+        elevation = CardDefaults.cardElevation(8.dp),
     ) {
         Column(
             modifier = Modifier.padding(12.dp)
@@ -52,11 +59,12 @@ fun ProductItemView(modifier: Modifier = Modifier, product: ProductModel) {
                 fontWeight = FontWeight.Bold,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.padding(8.dp)
+                modifier = Modifier.padding(start = 4.dp, end = 4.dp, top = 4.dp)
             )
             Row (
-                modifier = Modifier.fillMaxWidth()
-                    .padding(8.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 4.dp),
                 verticalAlignment = Alignment.CenterVertically
             ){
                 Text(
@@ -64,15 +72,18 @@ fun ProductItemView(modifier: Modifier = Modifier, product: ProductModel) {
                     fontSize = 14.sp,
                     style = TextStyle(textDecoration = TextDecoration.LineThrough)
                 )
-                Spacer(modifier = Modifier.width(8.dp))
+                Spacer(modifier = Modifier.width(6.dp))
                 Text(
                     text = "₹"+product.actualPrice,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.SemiBold
                 )
                 Spacer(modifier = Modifier.weight(1f))
-                IconButton(onClick = {}) {
+                IconButton(onClick = {},
+                    modifier = Modifier.size(30.dp),
+                ) {
                     Icon(
+                        modifier = Modifier.size(21.dp),
                         imageVector = Icons.Outlined.ShoppingCart,
                         contentDescription = "Add to Cart"
                     )

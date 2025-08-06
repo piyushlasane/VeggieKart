@@ -13,6 +13,7 @@ import com.google.firebase.auth.PhoneAuthCredential
 import com.google.firebase.auth.PhoneAuthOptions
 import com.google.firebase.auth.PhoneAuthProvider
 import com.google.firebase.firestore.FirebaseFirestore
+import com.project.veggiekart.model.UserModel
 import kotlinx.coroutines.launch
 import java.util.concurrent.TimeUnit
 
@@ -120,10 +121,8 @@ class AuthViewModel : ViewModel() {
             if (snapshot.exists()) {
                 onResult(true, "Login successful")
             } else {
-                val data = mapOf(
-                    "uid" to uid, "phone" to phone, "createdAt" to System.currentTimeMillis()
-                )
-                userDoc.set(data).addOnSuccessListener {
+                val user = UserModel(uid, phone, System.currentTimeMillis())
+                userDoc.set(user).addOnSuccessListener {
                     onResult(true, "User created successfully")
                 }.addOnFailureListener {
                     onResult(false, "Failed to create user")

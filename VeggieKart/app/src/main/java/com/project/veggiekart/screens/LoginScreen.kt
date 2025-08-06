@@ -1,7 +1,6 @@
 package com.project.veggiekart.screens
 
 import android.app.Activity
-import androidx.activity.ComponentActivity
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -48,14 +47,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import com.project.veggiekart.AppUtil
 import com.project.veggiekart.R
 import com.project.veggiekart.viewmodel.AuthViewModel
 import kotlinx.coroutines.launch
 
 @Composable
-fun LoginScreen(modifier: Modifier = Modifier, navController: NavHostController) {
+fun LoginScreen(modifier: Modifier = Modifier, navController: NavHostController, authViewModel: AuthViewModel = viewModel()) {
 
-    val authViewModel: AuthViewModel = viewModel()
     val mobileNumber = authViewModel.mobileNumber
     val showOtp = authViewModel.showOtp
     val isLoading = authViewModel.isLoading
@@ -117,7 +116,7 @@ fun LoginScreen(modifier: Modifier = Modifier, navController: NavHostController)
                             activity = context as Activity
                         ) { success, message ->
                             authViewModel.updateLoading(false)
-                            scope.launch { snackbarHostState.showSnackbar(message) }
+                            AppUtil.showSnackbar(scope, snackbarHostState, message)
                             if (success) authViewModel.updateShowOtp(true)
                         }
                     },
@@ -192,7 +191,7 @@ fun LoginScreen(modifier: Modifier = Modifier, navController: NavHostController)
                         authViewModel.updateLoading(true)
                         authViewModel.verifyOtp(enteredOtp) { success, message ->
                             authViewModel.updateLoading(false)
-                            scope.launch { snackbarHostState.showSnackbar(message) }
+                            AppUtil.showSnackbar(scope, snackbarHostState, message)
                             if (success) {
                                 navController.navigate("home") {
                                     popUpTo("auth") { inclusive = true }

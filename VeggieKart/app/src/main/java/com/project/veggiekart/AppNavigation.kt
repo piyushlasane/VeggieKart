@@ -9,6 +9,7 @@ import androidx.navigation.compose.rememberNavController
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
 import com.project.veggiekart.pages.CategoryProductsPage
+import com.project.veggiekart.pages.ProductDetailsPage
 import com.project.veggiekart.screens.AuthScreen
 import com.project.veggiekart.screens.LoginScreen
 import com.project.veggiekart.screens.HomeScreen
@@ -39,6 +40,10 @@ fun AppNavigation(modifier: Modifier = Modifier) {
         composable("category-products/{categoryId}"){
             val categoryId = it.arguments?.getString("categoryId")
             CategoryProductsPage(modifier, categoryId?: "")
+        }
+        composable("product-details/{productId}"){
+            val productId = it.arguments?.getString("productId")
+            ProductDetailsPage(modifier, productId?: "")
         }
     }
 }

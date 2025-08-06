@@ -4,9 +4,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Cached
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.filled.Widgets
 import androidx.compose.material.icons.outlined.Cached
 import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.ShoppingCart
 import androidx.compose.material.icons.outlined.Widgets
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
@@ -32,7 +34,7 @@ fun HomeScreen(modifier: Modifier = Modifier, navcontroller: NavHostController) 
     val navItemList = listOf(
         NavItem("Home", Icons.Filled.Home, Icons.Outlined.Home),
         NavItem("Categories", Icons.Filled.Widgets, Icons.Outlined.Widgets),
-        NavItem("Re-Order", Icons.Filled.Cached, Icons.Outlined.Cached),
+        NavItem("Cart", Icons.Filled.ShoppingCart, Icons.Outlined.ShoppingCart),
     )
 
     var selectedIndex by rememberSaveable { mutableStateOf(0) }
