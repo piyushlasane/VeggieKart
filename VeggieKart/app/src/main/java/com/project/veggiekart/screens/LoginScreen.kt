@@ -50,7 +50,6 @@ import androidx.navigation.NavHostController
 import com.project.veggiekart.AppUtil
 import com.project.veggiekart.R
 import com.project.veggiekart.viewmodel.AuthViewModel
-import kotlinx.coroutines.launch
 
 @Composable
 fun LoginScreen(modifier: Modifier = Modifier, navController: NavHostController, authViewModel: AuthViewModel = viewModel()) {

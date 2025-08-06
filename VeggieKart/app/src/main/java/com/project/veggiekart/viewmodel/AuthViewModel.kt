@@ -8,6 +8,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.FirebaseException
+import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.PhoneAuthCredential
 import com.google.firebase.auth.PhoneAuthOptions
@@ -121,7 +122,7 @@ class AuthViewModel : ViewModel() {
             if (snapshot.exists()) {
                 onResult(true, "Login successful")
             } else {
-                val user = UserModel(uid, phone, System.currentTimeMillis())
+                val user = UserModel(uid, phone, Timestamp.now())
                 userDoc.set(user).addOnSuccessListener {
                     onResult(true, "User created successfully")
                 }.addOnFailureListener {
