@@ -31,26 +31,31 @@ fun HeaderView(modifier: Modifier = Modifier) {
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Row(
-                modifier = Modifier.clickable { },
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    imageVector = Icons.Outlined.LocationOn,
-                    contentDescription = "Select Location",
-                    modifier = Modifier.size(16.dp)
-                )
-                Spacer(modifier = Modifier.width(4.dp))
-                Text(text = "Deliver to ", fontSize = 16.sp)
-                Text(
-                    text = "Selected Location", fontWeight = FontWeight.SemiBold, fontSize = 16.sp
-                )
-                Spacer(modifier = Modifier.width(4.dp))
-                Icon(
-                    imageVector = Icons.Default.ArrowDropDown,
-                    contentDescription = "Select Location",
-                    modifier = Modifier.size(16.dp)
-                )
+            Column (modifier = Modifier.clickable { }){
+                Row(
+
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.LocationOn,
+                        contentDescription = "Select Location",
+                        modifier = Modifier.size(16.dp)
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(text = "Deliver to ", fontSize = 16.sp)
+                    Text(
+                        text = "Selected Location",
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 16.sp
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Icon(
+                        imageVector = Icons.Default.ArrowDropDown,
+                        contentDescription = "Select Location",
+                        modifier = Modifier.size(16.dp)
+                    )
+                }
+                Text(text = "Add your address here", fontSize = 12.sp)
             }
             IconButton(onClick = {
                 GloabalNavigation.navController.navigate("profile")
