@@ -1,6 +1,6 @@
 package com.project.veggiekart
 
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -8,46 +8,70 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
+import com.google.firebase.firestore.firestore
+import com.project.veggiekart.model.UserModel
 import com.project.veggiekart.pages.CategoryProductsPage
 import com.project.veggiekart.pages.ProductDetailsPage
-import com.project.veggiekart.screens.AuthScreen
-import com.project.veggiekart.screens.LoginScreen
-import com.project.veggiekart.screens.HomeScreen
-import com.project.veggiekart.screens.ProfileScreen
+import com.project.veggiekart.screens.*
+import kotlinx.coroutines.tasks.await
 
 @Composable
 fun AppNavigation(modifier: Modifier = Modifier) {
-
     val navController = rememberNavController()
     GloabalNavigation.navController = navController
 
-    val isLoggedIn = Firebase.auth.currentUser != null
-    val firstPage = if (isLoggedIn) "home" else "auth"
+    var startDestination by remember { mutableStateOf<String?>(null) }
 
-    NavHost(navController = navController, startDestination = firstPage) {
-        composable("auth"){
-            AuthScreen(modifier, navController)
+    LaunchedEffect(Unit) {
+        val user = Firebase.auth.currentUser
+        startDestination = if (user == null) {
+            "auth"
+        } else {
+            // Check if profile is complete
+            val isComplete = checkProfileComplete(user.uid)
+            if (isComplete) "home" else "complete-profile"
         }
-        composable("login"){
-            LoginScreen(modifier, navController)
-        }
-        composable("home"){
-            HomeScreen(modifier, navController)
-        }
-        composable("profile"){
-            ProfileScreen(modifier, navController)
-        }
-        composable("category-products/{categoryId}"){
-            val categoryId = it.arguments?.getString("categoryId")
-            CategoryProductsPage(modifier, categoryId?: "")
-        }
-        composable("product-details/{productId}"){
-            val productId = it.arguments?.getString("productId")
-            ProductDetailsPage(modifier, productId?: "")
+    }
+
+    startDestination?.let { start ->
+        NavHost(navController = navController, startDestination = start) {
+            composable("auth") {
+                AuthScreen(modifier, navController)
+            }
+            composable("login") {
+                LoginScreen(modifier, navController)
+            }
+            composable("complete-profile") {
+                CompleteProfileScreen(modifier, navController)
+            }
+            composable("home") {
+                HomeScreen(modifier, navController)
+            }
+            composable("profile") {
+                ProfileScreen(modifier, navController)
+            }
+            composable("category-products/{categoryId}") {
+                val categoryId = it.arguments?.getString("categoryId")
+                CategoryProductsPage(modifier, categoryId ?: "")
+            }
+            composable("product-details/{productId}") {
+                val productId = it.arguments?.getString("productId")
+                ProductDetailsPage(modifier, productId ?: "")
+            }
         }
     }
 }
 
-object GloabalNavigation{
+suspend fun checkProfileComplete(uid: String): Boolean {
+    return try {
+        val doc = Firebase.firestore.collection("users").document(uid).get().await()
+        val user = doc.toObject(UserModel::class.java)
+        !user?.name.isNullOrEmpty() // Profile complete if name exists
+    } catch (e: Exception) {
+        false
+    }
+}
+
+object GloabalNavigation {
     lateinit var navController: NavHostController
 }

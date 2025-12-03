@@ -49,7 +49,9 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.project.veggiekart.AppUtil
 import com.project.veggiekart.R
+import com.project.veggiekart.checkProfileComplete
 import com.project.veggiekart.viewmodel.AuthViewModel
+import kotlinx.coroutines.launch
 
 @Composable
 fun LoginScreen(modifier: Modifier = Modifier, navController: NavHostController, authViewModel: AuthViewModel = viewModel()) {
@@ -192,8 +194,16 @@ fun LoginScreen(modifier: Modifier = Modifier, navController: NavHostController,
                             authViewModel.updateLoading(false)
                             AppUtil.showSnackbar(scope, snackbarHostState, message)
                             if (success) {
-                                navController.navigate("home") {
-                                    popUpTo("auth") { inclusive = true }
+                                // Check if profile is complete before navigating
+                                scope.launch {
+                                    val uid = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.uid
+                                    if (uid != null) {
+                                        val isComplete = checkProfileComplete(uid)
+                                        val destination = if (isComplete) "home" else "complete-profile"
+                                        navController.navigate(destination) {
+                                            popUpTo("auth") { inclusive = true }
+                                        }
+                                    }
                                 }
                             }
                         }

@@ -120,11 +120,18 @@ class AuthViewModel : ViewModel() {
         val userDoc = firestore.collection("users").document(uid)
         userDoc.get().addOnSuccessListener { snapshot ->
             if (snapshot.exists()) {
-                onResult(true, "Login successful")
+                // Existing user
+                val user = snapshot.toObject(UserModel::class.java)
+                if (user?.name.isNullOrEmpty()) {
+                    onResult(true, "Please complete your profile")
+                } else {
+                    onResult(true, "Login successful")
+                }
             } else {
-                val user = UserModel(uid, phone, Timestamp.now())
+                // New user - create without name
+                val user = UserModel(uid = uid, phone = phone, name = "", createdAt = Timestamp.now())
                 userDoc.set(user).addOnSuccessListener {
-                    onResult(true, "User created successfully")
+                    onResult(true, "Please complete your profile")
                 }.addOnFailureListener {
                     onResult(false, "Failed to create user")
                 }
