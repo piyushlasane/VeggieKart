@@ -50,6 +50,15 @@ fun AppNavigation(modifier: Modifier = Modifier) {
             composable("profile") {
                 ProfileScreen(modifier, navController)
             }
+            composable("edit-profile") {
+                EditProfileScreen(modifier, navController)
+            }
+            composable("manage-addresses") {
+                ManageAddressesScreen(modifier, navController)
+            }
+            composable("add-address") {
+                AddAddressScreen(modifier, navController)
+            }
             composable("category-products/{categoryId}") {
                 val categoryId = it.arguments?.getString("categoryId")
                 CategoryProductsPage(modifier, categoryId ?: "")

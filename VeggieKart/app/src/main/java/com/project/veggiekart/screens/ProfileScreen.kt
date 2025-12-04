@@ -147,7 +147,7 @@ fun LoggedInProfileScreen(modifier: Modifier = Modifier, navController: NavHostC
                 ProfileMenuItem(
                     icon = Icons.Outlined.Person,
                     title = "Edit Profile",
-                    onClick = { /* TODO: Navigate to edit profile */ }
+                    onClick = { navController.navigate("edit-profile") }
                 )
 
                 ProfileMenuItem(
@@ -159,7 +159,7 @@ fun LoggedInProfileScreen(modifier: Modifier = Modifier, navController: NavHostC
                 ProfileMenuItem(
                     icon = Icons.Outlined.LocationOn,
                     title = "Manage Addresses",
-                    onClick = { /* TODO: Navigate to addresses */ }
+                    onClick = { navController.navigate("manage-addresses") }
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))

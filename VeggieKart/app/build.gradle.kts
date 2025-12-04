@@ -70,4 +70,8 @@ dependencies {
 
     implementation(libs.androidx.material.icons.extended)
 
+    implementation(libs.play.services.location)
+    implementation(libs.osmdroid.android)
+
+
 }

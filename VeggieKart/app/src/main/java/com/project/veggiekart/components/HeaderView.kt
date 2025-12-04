@@ -15,25 +15,54 @@ import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 import com.project.veggiekart.GloabalNavigation
+import com.project.veggiekart.model.AddressModel
+import com.project.veggiekart.model.UserModel
+import kotlinx.coroutines.tasks.await
 
 @Composable
 fun HeaderView(modifier: Modifier = Modifier) {
+    var defaultAddress by remember { mutableStateOf<AddressModel?>(null) }
+    var showAddressSheet by remember { mutableStateOf(false) }
+    var refreshTrigger by remember { mutableStateOf(0) }
+    val isLoggedIn = FirebaseAuth.getInstance().currentUser != null
+
+    // Load default address
+    LaunchedEffect(refreshTrigger) {
+        if (isLoggedIn) {
+            loadDefaultAddress { address ->
+                defaultAddress = address
+            }
+        }
+    }
+
     Column {
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Column (modifier = Modifier.clickable { }){
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .clickable {
+                        if (isLoggedIn) {
+                            showAddressSheet = true
+                        } else {
+                            GloabalNavigation.navController.navigate("login")
+                        }
+                    }
+            ) {
                 Row(
-
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(
@@ -44,9 +73,15 @@ fun HeaderView(modifier: Modifier = Modifier) {
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(text = "Deliver to ", fontSize = 16.sp)
                     Text(
-                        text = "Selected Location",
+                        text = if (defaultAddress != null) {
+                            defaultAddress!!.city
+                        } else  {
+                            "Select Address"
+                        },
                         fontWeight = FontWeight.SemiBold,
-                        fontSize = 16.sp
+                        fontSize = 16.sp,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Icon(
@@ -55,7 +90,18 @@ fun HeaderView(modifier: Modifier = Modifier) {
                         modifier = Modifier.size(16.dp)
                     )
                 }
-                Text(text = "Add your address here", fontSize = 12.sp)
+                Text(
+                    text = if (defaultAddress != null) {
+                        "${defaultAddress!!.addressLine}, ${defaultAddress!!.pincode}"
+                    } else if (isLoggedIn) {
+                        "Add your delivery address"
+                    } else {
+                        "Login to add address"
+                    },
+                    fontSize = 12.sp,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
             }
             IconButton(onClick = {
                 GloabalNavigation.navController.navigate("profile")
@@ -65,7 +111,39 @@ fun HeaderView(modifier: Modifier = Modifier) {
                     contentDescription = "Your Account or Profile"
                 )
             }
-
         }
+    }
+
+    // Address Selection Bottom Sheet
+    if (showAddressSheet) {
+        AddressSelectionBottomSheet(
+            onDismiss = {
+                showAddressSheet = false
+                refreshTrigger++
+            },
+            onAddressSelected = { address ->
+                defaultAddress = address
+            }
+        )
+    }
+}
+
+suspend fun loadDefaultAddress(onLoaded: (AddressModel?) -> Unit) {
+    try {
+        val uid = FirebaseAuth.getInstance().currentUser?.uid
+        if (uid != null) {
+            val doc = FirebaseFirestore.getInstance()
+                .collection("users")
+                .document(uid)
+                .get()
+                .await()
+            val user = doc.toObject(UserModel::class.java)
+            val default = user?.addresses?.find { it.isDefault }
+            onLoaded(default)
+        } else {
+            onLoaded(null)
+        }
+    } catch (e: Exception) {
+        onLoaded(null)
     }
 }
