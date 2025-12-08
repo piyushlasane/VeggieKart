@@ -1,5 +1,6 @@
 package com.project.veggiekart.screens
 
+import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -54,6 +55,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.project.veggiekart.AddressUpdateNotifier
 import com.project.veggiekart.AppUtil
 import com.project.veggiekart.model.AddressModel
 import com.project.veggiekart.model.UserModel
@@ -69,6 +71,7 @@ fun ManageAddressesScreen(modifier: Modifier = Modifier, navController: NavHostC
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
     var showDeleteDialog by remember { mutableStateOf<AddressModel?>(null) }
+    val addressUpdateTrigger by AddressUpdateNotifier.updateTrigger
 
     // Function to load addresses from Firestore
     fun loadAddresses() {
@@ -94,7 +97,7 @@ fun ManageAddressesScreen(modifier: Modifier = Modifier, navController: NavHostC
         }
     }
 
-    LaunchedEffect(Unit) {
+    LaunchedEffect(addressUpdateTrigger) {
         loadAddresses()
     }
 
@@ -213,6 +216,10 @@ fun ManageAddressesScreen(modifier: Modifier = Modifier, navController: NavHostC
                                                     .update("addresses", updatedAddresses)
                                                     .await()
 
+                                                Log.d("ADDR", "Updated addresses, notifying in  SCREEN")
+                                                // Notify the global notifier to update HeaderView
+                                                AddressUpdateNotifier.notifyAddressUpdated()
+
                                                 // Reload from Firestore to ensure consistency
                                                 loadAddresses()
 
@@ -220,6 +227,7 @@ fun ManageAddressesScreen(modifier: Modifier = Modifier, navController: NavHostC
                                             }
                                         } catch (e: Exception) {
                                             AppUtil.showSnackbar(scope, snackbarHostState, "Error updating address")
+                                        } finally {
                                             isUpdating = false
                                         }
                                     }
@@ -247,7 +255,7 @@ fun ManageAddressesScreen(modifier: Modifier = Modifier, navController: NavHostC
         // Delete Confirmation Dialog
         showDeleteDialog?.let { address ->
             AlertDialog(
-                onDismissRequest = { showDeleteDialog = null },
+                onDismissRequest = { },
                 title = { Text("Delete Address") },
                 text = { Text("Are you sure you want to delete this address?") },
                 confirmButton = {
@@ -282,9 +290,8 @@ fun ManageAddressesScreen(modifier: Modifier = Modifier, navController: NavHostC
                                     }
                                 } catch (e: Exception) {
                                     AppUtil.showSnackbar(scope, snackbarHostState, "Error deleting address")
-                                    isUpdating = false
                                 } finally {
-                                    showDeleteDialog = null
+                                    isUpdating = false
                                 }
                             }
                         }
@@ -293,7 +300,7 @@ fun ManageAddressesScreen(modifier: Modifier = Modifier, navController: NavHostC
                     }
                 },
                 dismissButton = {
-                    TextButton(onClick = { showDeleteDialog = null }) {
+                    TextButton(onClick = { }) {
                         Text("Cancel")
                     }
                 }

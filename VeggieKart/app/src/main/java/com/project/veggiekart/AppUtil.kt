@@ -4,6 +4,7 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.mutableStateOf
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import androidx.compose.runtime.State
 
 object AppUtil {
     fun showSnackbar(
@@ -14,11 +15,10 @@ object AppUtil {
 }
 
 object AddressUpdateNotifier {
-    private var updateTrigger = mutableStateOf(0)
+    private var _updateTrigger = mutableStateOf(0)
+    val updateTrigger: State<Int> = _updateTrigger
 
     fun notifyAddressUpdated() {
-        updateTrigger.value++
+        _updateTrigger.value++
     }
-
-    fun getUpdateTrigger() = updateTrigger.value
 }

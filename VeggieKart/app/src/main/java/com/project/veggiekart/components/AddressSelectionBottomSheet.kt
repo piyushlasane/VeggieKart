@@ -1,5 +1,6 @@
 package com.project.veggiekart.components
 
+import android.util.Log
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -19,6 +20,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.project.veggiekart.AddressUpdateNotifier
 import com.project.veggiekart.GlobalNavigation
 import com.project.veggiekart.model.AddressModel
 import com.project.veggiekart.model.UserModel
@@ -34,32 +36,33 @@ fun AddressSelectionBottomSheet(
     var addresses by remember { mutableStateOf<List<AddressModel>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
     var isUpdating by remember { mutableStateOf(false) }
+    var selectedAddressId by remember { mutableStateOf<String?>(null) }
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
 
     // Function to load addresses
-    fun loadAddresses() {
-        scope.launch {
-            val uid = FirebaseAuth.getInstance().currentUser?.uid
-            if (uid != null) {
-                try {
-                    val doc = FirebaseFirestore.getInstance()
-                        .collection("users")
-                        .document(uid)
-                        .get()
-                        .await()
-                    val user = doc.toObject(UserModel::class.java)
-                    addresses = user?.addresses ?: emptyList()
-                } catch (e: Exception) {
-                    snackbarHostState.showSnackbar("Error loading addresses: ${e.localizedMessage}")
-                } finally {
-                    isLoading = false
-                    isUpdating = false
-                }
-            } else {
+    suspend fun loadAddresses() {
+        val uid = FirebaseAuth.getInstance().currentUser?.uid
+        if (uid != null) {
+            try {
+                val doc = FirebaseFirestore.getInstance()
+                    .collection("users")
+                    .document(uid)
+                    .get()
+                    .await()
+                val user = doc.toObject(UserModel::class.java)
+                addresses = user?.addresses ?: emptyList()
+                // Set the currently selected address
+                selectedAddressId = addresses.find { it.isDefault }?.id
+            } catch (e: Exception) {
+                snackbarHostState.showSnackbar("Error loading addresses: ${e.localizedMessage}")
+            } finally {
                 isLoading = false
                 isUpdating = false
             }
+        } else {
+            isLoading = false
+            isUpdating = false
         }
     }
 
@@ -146,10 +149,12 @@ fun AddressSelectionBottomSheet(
                     items(addresses) { address ->
                         AddressItemSheet(
                             address = address,
-                            isUpdating = isUpdating,
+                            isSelected = address.id == selectedAddressId,
+                            isUpdating = isUpdating && address.id == selectedAddressId,
                             onClick = {
-                                if (!isUpdating) {
+                                if (!isUpdating && address.id != selectedAddressId) {
                                     isUpdating = true
+                                    selectedAddressId = address.id
                                     scope.launch {
                                         try {
                                             val uid = FirebaseAuth.getInstance().currentUser?.uid
@@ -166,16 +171,27 @@ fun AddressSelectionBottomSheet(
                                                     .update("addresses", updatedAddresses)
                                                     .await()
 
-                                                // Reload addresses to ensure consistency
+                                                Log.d("ADDR", "Updated addresses, notifying in  sheet")
+                                                // Notify the global notifier to update HeaderView
+                                                AddressUpdateNotifier.notifyAddressUpdated()
+
+                                                // Reload to ensure consistency
                                                 loadAddresses()
 
-                                                // Notify parent and dismiss
-                                                onAddressSelected(address.copy(isDefault = true))
+                                                // Find the updated address and pass it to callback
+                                                val updatedAddress = updatedAddresses.find { it.id == address.id }
+                                                if (updatedAddress != null) {
+                                                    onAddressSelected(updatedAddress)
+                                                }
+
+                                                // Small delay before dismissing for better UX
+                                                kotlinx.coroutines.delay(300)
                                                 onDismiss()
                                             }
                                         } catch (e: Exception) {
                                             snackbarHostState.showSnackbar("Error: ${e.localizedMessage}")
                                             isUpdating = false
+                                            selectedAddressId = addresses.find { it.isDefault }?.id
                                         }
                                     }
                                 }
@@ -217,6 +233,7 @@ fun AddressSelectionBottomSheet(
 @Composable
 fun AddressItemSheet(
     address: AddressModel,
+    isSelected: Boolean = false,
     isUpdating: Boolean = false,
     onClick: () -> Unit
 ) {
@@ -234,9 +251,9 @@ fun AddressItemSheet(
             )
         } else {
             Icon(
-                imageVector = if (address.isDefault) Icons.Filled.CheckCircle else Icons.Outlined.Circle,
+                imageVector = if (isSelected) Icons.Filled.CheckCircle else Icons.Outlined.Circle,
                 contentDescription = null,
-                tint = if (address.isDefault) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                tint = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.size(24.dp)
             )
         }
@@ -265,7 +282,7 @@ fun AddressItemSheet(
                             modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
                         )
                     }
-                    if (address.isDefault) {
+                    if (isSelected) {
                         Surface(
                             shape = RoundedCornerShape(4.dp),
                             color = MaterialTheme.colorScheme.primaryContainer
