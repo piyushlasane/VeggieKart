@@ -19,7 +19,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
-import com.project.veggiekart.GloabalNavigation
+import com.project.veggiekart.GlobalNavigation
 import com.project.veggiekart.model.AddressModel
 import com.project.veggiekart.model.UserModel
 import kotlinx.coroutines.launch
@@ -78,7 +78,7 @@ fun AddressSelectionBottomSheet(
                 TextButton(
                     onClick = {
                         onDismiss()
-                        GloabalNavigation.navController.navigate("manage-addresses")
+                        GlobalNavigation.navController.navigate("manage-addresses")
                     }
                 ) {
                     Text("Manage")
@@ -119,7 +119,7 @@ fun AddressSelectionBottomSheet(
                     Button(
                         onClick = {
                             onDismiss()
-                            GloabalNavigation.navController.navigate("add-address")
+                            GlobalNavigation.navController.navigate("add-address")
                         }
                     ) {
                         Icon(Icons.Default.Add, contentDescription = null)
@@ -168,7 +168,7 @@ fun AddressSelectionBottomSheet(
                         OutlinedButton(
                             onClick = {
                                 onDismiss()
-                                GloabalNavigation.navController.navigate("add-address")
+                                GlobalNavigation.navController.navigate("add-address")
                             },
                             modifier = Modifier.fillMaxWidth()
                         ) {

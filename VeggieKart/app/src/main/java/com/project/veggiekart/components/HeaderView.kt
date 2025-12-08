@@ -24,7 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
-import com.project.veggiekart.GloabalNavigation
+import com.project.veggiekart.GlobalNavigation
 import com.project.veggiekart.model.AddressModel
 import com.project.veggiekart.model.UserModel
 import kotlinx.coroutines.tasks.await
@@ -58,7 +58,7 @@ fun HeaderView(modifier: Modifier = Modifier) {
                         if (isLoggedIn) {
                             showAddressSheet = true
                         } else {
-                            GloabalNavigation.navController.navigate("login")
+                            GlobalNavigation.navController.navigate("login")
                         }
                     }
             ) {
@@ -104,7 +104,7 @@ fun HeaderView(modifier: Modifier = Modifier) {
                 )
             }
             IconButton(onClick = {
-                GloabalNavigation.navController.navigate("profile")
+                GlobalNavigation.navController.navigate("profile")
             }) {
                 Icon(
                     imageVector = Icons.Outlined.AccountCircle,

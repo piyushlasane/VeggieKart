@@ -18,7 +18,7 @@ import kotlinx.coroutines.tasks.await
 @Composable
 fun AppNavigation(modifier: Modifier = Modifier) {
     val navController = rememberNavController()
-    GloabalNavigation.navController = navController
+    GlobalNavigation.navController = navController
 
     var startDestination by remember { mutableStateOf<String?>(null) }
 
@@ -81,6 +81,6 @@ suspend fun checkProfileComplete(uid: String): Boolean {
     }
 }
 
-object GloabalNavigation {
+object GlobalNavigation {
     lateinit var navController: NavHostController
 }

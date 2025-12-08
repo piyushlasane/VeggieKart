@@ -31,7 +31,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
-import com.project.veggiekart.GloabalNavigation
+import com.project.veggiekart.GlobalNavigation
 import com.project.veggiekart.model.ProductModel
 
 @Composable
@@ -40,7 +40,7 @@ fun ProductItemView(modifier: Modifier = Modifier, product: ProductModel) {
         modifier = modifier
             .padding(8.dp)
             .clickable {
-                GloabalNavigation.navController.navigate("product-details/"+product.id)
+                GlobalNavigation.navController.navigate("product-details/"+product.id)
             },
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),

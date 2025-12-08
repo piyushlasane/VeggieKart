@@ -29,7 +29,7 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.firestore
-import com.project.veggiekart.GloabalNavigation
+import com.project.veggiekart.GlobalNavigation
 import com.project.veggiekart.model.CategoryModel
 
 @Composable
@@ -80,7 +80,7 @@ fun CategoryItem(category: CategoryModel, modifier: Modifier) {
     Card (
         modifier = Modifier.size(150.dp)
             .clickable{
-                GloabalNavigation.navController.navigate("category-products/"+category.id)
+                GlobalNavigation.navController.navigate("category-products/"+category.id)
             },
         shape = RoundedCornerShape(12.dp),
         elevation = CardDefaults.cardElevation(4.dp),

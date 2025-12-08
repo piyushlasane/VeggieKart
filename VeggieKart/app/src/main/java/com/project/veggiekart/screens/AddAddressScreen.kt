@@ -22,7 +22,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.MyLocation
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -68,7 +68,6 @@ import kotlinx.coroutines.tasks.await
 import java.util.Locale
 import java.util.UUID
 
-@RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddAddressScreen(modifier: Modifier = Modifier, navController: NavHostController) {
@@ -100,25 +99,18 @@ fun AddAddressScreen(modifier: Modifier = Modifier, navController: NavHostContro
     // Check location permission
     LaunchedEffect(Unit) {
         hasLocationPermission = ContextCompat.checkSelfPermission(
-            context,
-            Manifest.permission.ACCESS_FINE_LOCATION
+            context, Manifest.permission.ACCESS_FINE_LOCATION
         ) == PackageManager.PERMISSION_GRANTED
 
         // Pre-fill user data
         val uid = FirebaseAuth.getInstance().currentUser?.uid
         if (uid != null) {
             try {
-                val doc = FirebaseFirestore.getInstance()
-                    .collection("users")
-                    .document(uid)
-                    .get()
-                    .await()
+                val doc =
+                    FirebaseFirestore.getInstance().collection("users").document(uid).get().await()
                 val user = doc.toObject(UserModel::class.java)
                 name = user?.name ?: ""
                 phone = user?.phone ?: ""
-                if (phone.contains("+91")) {
-                    phone = phone.replace("+91", "")
-                }
                 isDefault = user?.addresses.isNullOrEmpty()
             } catch (e: Exception) {
                 // Handle error
@@ -150,19 +142,13 @@ fun AddAddressScreen(modifier: Modifier = Modifier, navController: NavHostContro
         }
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Add Delivery Address") },
-                navigationIcon = {
-                    IconButton(onClick = { navController.navigateUp() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
-                    }
-                }
-            )
-        },
-        snackbarHost = { SnackbarHost(snackbarHostState) }
-    ) { paddingValues ->
+    Scaffold(topBar = {
+        TopAppBar(title = { Text("Add Delivery Address") }, navigationIcon = {
+            IconButton(onClick = { navController.navigateUp() }) {
+                Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+            }
+        })
+    }, snackbarHost = { SnackbarHost(snackbarHostState) }) { paddingValues ->
 
         Column(
             modifier = modifier
@@ -174,8 +160,7 @@ fun AddAddressScreen(modifier: Modifier = Modifier, navController: NavHostContro
 
             // Detect Location Button
             Card(
-                modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(
+                modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer
                 )
             ) {
@@ -212,18 +197,18 @@ fun AddAddressScreen(modifier: Modifier = Modifier, navController: NavHostContro
                                     area = address.subLocality ?: address.featureName ?: ""
 
                                     isDetectingLocation = false
-                                    AppUtil.showSnackbar(scope, snackbarHostState, "Location detected!")
+                                    AppUtil.showSnackbar(
+                                        scope, snackbarHostState, "Location detected!"
+                                    )
                                 }
                             } else {
                                 locationPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
                             }
-                        },
-                        enabled = !isDetectingLocation
+                        }, enabled = !isDetectingLocation
                     ) {
                         if (isDetectingLocation) {
                             CircularProgressIndicator(
-                                modifier = Modifier.size(20.dp),
-                                strokeWidth = 2.dp
+                                modifier = Modifier.size(20.dp), strokeWidth = 2.dp
                             )
                         } else {
                             Icon(
@@ -242,9 +227,7 @@ fun AddAddressScreen(modifier: Modifier = Modifier, navController: NavHostContro
 
             // Address Type Selection
             Text(
-                text = "Save Address As",
-                fontSize = 14.sp,
-                fontWeight = FontWeight.SemiBold
+                text = "Save Address As", fontSize = 14.sp, fontWeight = FontWeight.SemiBold
             )
 
             Row(
@@ -267,9 +250,7 @@ fun AddAddressScreen(modifier: Modifier = Modifier, navController: NavHostContro
 
             // Contact Details
             Text(
-                text = "Contact Details",
-                fontSize = 16.sp,
-                fontWeight = FontWeight.SemiBold
+                text = "Contact Details", fontSize = 16.sp, fontWeight = FontWeight.SemiBold
             )
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -297,9 +278,7 @@ fun AddAddressScreen(modifier: Modifier = Modifier, navController: NavHostContro
 
             // Address Details
             Text(
-                text = "Address Details",
-                fontSize = 16.sp,
-                fontWeight = FontWeight.SemiBold
+                text = "Address Details", fontSize = 16.sp, fontWeight = FontWeight.SemiBold
             )
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -358,7 +337,9 @@ fun AddAddressScreen(modifier: Modifier = Modifier, navController: NavHostContro
 
                 OutlinedTextField(
                     value = pincode,
-                    onValueChange = { if (it.length <= 6 && it.all { char -> char.isDigit() }) pincode = it },
+                    onValueChange = {
+                        if (it.length <= 6 && it.all { char -> char.isDigit() }) pincode = it
+                    },
                     label = { Text("Pincode *") },
                     modifier = Modifier.weight(1f),
                     singleLine = true,
@@ -369,13 +350,10 @@ fun AddAddressScreen(modifier: Modifier = Modifier, navController: NavHostContro
             Spacer(modifier = Modifier.height(16.dp))
 
             Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
+                modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically
             ) {
                 Checkbox(
-                    checked = isDefault,
-                    onCheckedChange = { isDefault = it }
-                )
+                    checked = isDefault, onCheckedChange = { isDefault = it })
                 Text("Make this my default address", fontSize = 14.sp)
             }
 
@@ -389,39 +367,51 @@ fun AddAddressScreen(modifier: Modifier = Modifier, navController: NavHostContro
                             AppUtil.showSnackbar(scope, snackbarHostState, "Please enter name")
                             return@Button
                         }
+
                         phone.trim().length != 10 -> {
-                            AppUtil.showSnackbar(scope, snackbarHostState, "Please enter valid phone number")
+                            AppUtil.showSnackbar(
+                                scope, snackbarHostState, "Please enter valid phone number"
+                            )
                             return@Button
                         }
+
                         houseNo.trim().isEmpty() -> {
-                            AppUtil.showSnackbar(scope, snackbarHostState, "Please enter house/flat number")
+                            AppUtil.showSnackbar(
+                                scope, snackbarHostState, "Please enter house/flat number"
+                            )
                             return@Button
                         }
+
                         area.trim().isEmpty() -> {
-                            AppUtil.showSnackbar(scope, snackbarHostState, "Please enter area/locality")
+                            AppUtil.showSnackbar(
+                                scope, snackbarHostState, "Please enter area/locality"
+                            )
                             return@Button
                         }
+
                         city.trim().isEmpty() -> {
                             AppUtil.showSnackbar(scope, snackbarHostState, "Please enter city")
                             return@Button
                         }
+
                         state.trim().isEmpty() -> {
                             AppUtil.showSnackbar(scope, snackbarHostState, "Please enter state")
                             return@Button
                         }
+
                         pincode.trim().length != 6 -> {
-                            AppUtil.showSnackbar(scope, snackbarHostState, "Please enter valid pincode")
+                            AppUtil.showSnackbar(
+                                scope, snackbarHostState, "Please enter valid pincode"
+                            )
                             return@Button
                         }
                     }
-
                     isSaving = true
                     scope.launch {
                         try {
                             val uid = FirebaseAuth.getInstance().currentUser?.uid
                             if (uid != null) {
-                                val userDoc = FirebaseFirestore.getInstance()
-                                    .collection("users")
+                                val userDoc = FirebaseFirestore.getInstance().collection("users")
                                     .document(uid)
 
                                 val doc = userDoc.get().await()
@@ -431,7 +421,9 @@ fun AddAddressScreen(modifier: Modifier = Modifier, navController: NavHostContro
                                 val fullAddress = buildString {
                                     append(houseNo.trim())
                                     if (area.trim().isNotEmpty()) append(", ${area.trim()}")
-                                    if (landmark.trim().isNotEmpty()) append(", Near ${landmark.trim()}")
+                                    if (landmark.trim()
+                                            .isNotEmpty()
+                                    ) append(", Near ${landmark.trim()}")
                                 }
 
                                 val newAddress = AddressModel(
@@ -458,15 +450,15 @@ fun AddAddressScreen(modifier: Modifier = Modifier, navController: NavHostContro
 
                                 userDoc.update("addresses", updatedAddresses).await()
 
-                                AppUtil.showSnackbar(scope, snackbarHostState, "Address saved successfully")
+                                AppUtil.showSnackbar(
+                                    scope, snackbarHostState, "Address saved successfully"
+                                )
                                 kotlinx.coroutines.delay(1000)
                                 navController.navigateUp()
                             }
                         } catch (e: Exception) {
                             AppUtil.showSnackbar(
-                                scope,
-                                snackbarHostState,
-                                "Error: ${e.localizedMessage}"
+                                scope, snackbarHostState, "Error: ${e.localizedMessage}"
                             )
                         } finally {
                             isSaving = false
@@ -498,27 +490,28 @@ fun AddAddressScreen(modifier: Modifier = Modifier, navController: NavHostContro
 // Helper function to detect current location
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
 fun detectCurrentLocation(
-    context: android.content.Context,
-    onLocation: (Double, Double, android.location.Address) -> Unit
+    context: android.content.Context, onLocation: (Double, Double, android.location.Address) -> Unit
 ) {
     val fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
     try {
         fusedLocationClient.lastLocation.addOnSuccessListener { location ->
             if (location != null) {
-                // Reverse geocode
+// Reverse geocode
                 try {
                     val geocoder = Geocoder(context, Locale.getDefault())
-                    geocoder.getFromLocation(location.latitude, location.longitude, 1) { addresses ->
+                    geocoder.getFromLocation(
+                        location.latitude, location.longitude, 1
+                    ) { addresses ->
                         if (addresses.isNotEmpty()) {
                             onLocation(location.latitude, location.longitude, addresses[0])
                         }
                     }
                 } catch (e: Exception) {
-                    // Handle geocoding error
+// Handle geocoding error
                 }
             }
         }
     } catch (e: SecurityException) {
-        // Handle permission error
+// Handle permission error
     }
 }
