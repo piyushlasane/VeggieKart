@@ -60,6 +60,7 @@ import androidx.navigation.NavHostController
 import com.google.android.gms.location.LocationServices
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.project.veggiekart.AddressUpdateNotifier
 import com.project.veggiekart.AppUtil
 import com.project.veggiekart.model.AddressModel
 import com.project.veggiekart.model.UserModel
@@ -68,6 +69,7 @@ import kotlinx.coroutines.tasks.await
 import java.util.Locale
 import java.util.UUID
 
+@RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddAddressScreen(modifier: Modifier = Modifier, navController: NavHostController) {
@@ -368,7 +370,7 @@ fun AddAddressScreen(modifier: Modifier = Modifier, navController: NavHostContro
                             return@Button
                         }
 
-                        phone.trim().length != 10 -> {
+                        phone.trim().length !in 10..13 -> {
                             AppUtil.showSnackbar(
                                 scope, snackbarHostState, "Please enter valid phone number"
                             )
@@ -449,7 +451,7 @@ fun AddAddressScreen(modifier: Modifier = Modifier, navController: NavHostContro
                                 }
 
                                 userDoc.update("addresses", updatedAddresses).await()
-
+                                AddressUpdateNotifier.notifyAddressUpdated()
                                 AppUtil.showSnackbar(
                                     scope, snackbarHostState, "Address saved successfully"
                                 )

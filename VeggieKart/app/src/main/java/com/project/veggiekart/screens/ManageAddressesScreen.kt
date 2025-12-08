@@ -1,16 +1,51 @@
 package com.project.veggiekart.screens
-import androidx.compose.foundation.layout.*
+
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.LocationOn
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -30,16 +65,18 @@ import kotlinx.coroutines.tasks.await
 fun ManageAddressesScreen(modifier: Modifier = Modifier, navController: NavHostController) {
     var addresses by remember { mutableStateOf<List<AddressModel>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
+    var isUpdating by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
     var showDeleteDialog by remember { mutableStateOf<AddressModel?>(null) }
 
-    // Load addresses
+    // Function to load addresses from Firestore
     fun loadAddresses() {
         scope.launch {
             val uid = FirebaseAuth.getInstance().currentUser?.uid
             if (uid != null) {
                 try {
+                    isLoading = true
                     val doc = FirebaseFirestore.getInstance()
                         .collection("users")
                         .document(uid)
@@ -51,6 +88,7 @@ fun ManageAddressesScreen(modifier: Modifier = Modifier, navController: NavHostC
                     AppUtil.showSnackbar(scope, snackbarHostState, "Error loading addresses")
                 } finally {
                     isLoading = false
+                    isUpdating = false
                 }
             }
         }
@@ -60,20 +98,40 @@ fun ManageAddressesScreen(modifier: Modifier = Modifier, navController: NavHostC
         loadAddresses()
     }
 
+    // Reload addresses when returning from add-address screen
+    DisposableEffect(Unit) {
+        val callback = navController.currentBackStackEntry
+            ?.savedStateHandle
+            ?.getLiveData<Boolean>("address_updated")
+            ?.observeForever { updated ->
+                if (updated == true) {
+                    loadAddresses()
+                    navController.currentBackStackEntry
+                        ?.savedStateHandle
+                        ?.remove<Boolean>("address_updated")
+                }
+            }
+
+        onDispose {
+            // Cleanup if needed
+        }
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text("Manage Addresses") },
                 navigationIcon = {
                     IconButton(onClick = { navController.navigateUp() }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 }
             )
         },
         floatingActionButton = {
             FloatingActionButton(
-                onClick = { navController.navigate("add-address") }
+                onClick = { navController.navigate("add-address") },
+                containerColor = MaterialTheme.colorScheme.primary
             ) {
                 Icon(Icons.Default.Add, contentDescription = "Add Address")
             }
@@ -119,45 +177,69 @@ fun ManageAddressesScreen(modifier: Modifier = Modifier, navController: NavHostC
                 }
             }
         } else {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues)
-                    .padding(16.dp)
-            ) {
-                items(addresses) { address ->
-                    AddressCard(
-                        address = address,
-                        onEdit = {
-                            // TODO: Edit functionality
-                        },
-                        onDelete = {
-                            showDeleteDialog = address
-                        },
-                        onSetDefault = {
-                            scope.launch {
-                                try {
-                                    val uid = FirebaseAuth.getInstance().currentUser?.uid
-                                    if (uid != null) {
-                                        val updatedAddresses = addresses.map {
-                                            it.copy(isDefault = it.id == address.id)
-                                        }
-                                        FirebaseFirestore.getInstance()
-                                            .collection("users")
-                                            .document(uid)
-                                            .update("addresses", updatedAddresses)
-                                            .await()
+            Box(modifier = Modifier.fillMaxSize()) {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues)
+                        .padding(16.dp)
+                ) {
+                    items(addresses) { address ->
+                        AddressCard(
+                            address = address,
+                            isUpdating = isUpdating,
+                            onEdit = {
+                                // TODO: Edit functionality
+                            },
+                            onDelete = {
+                                showDeleteDialog = address
+                            },
+                            onSetDefault = {
+                                if (!isUpdating) {
+                                    isUpdating = true
+                                    scope.launch {
+                                        try {
+                                            val uid = FirebaseAuth.getInstance().currentUser?.uid
+                                            if (uid != null) {
+                                                // Update all addresses - set selected as default, others as non-default
+                                                val updatedAddresses = addresses.map {
+                                                    it.copy(isDefault = it.id == address.id)
+                                                }
 
-                                        addresses = updatedAddresses
-                                        AppUtil.showSnackbar(scope, snackbarHostState, "Default address updated")
+                                                // Update in Firestore
+                                                FirebaseFirestore.getInstance()
+                                                    .collection("users")
+                                                    .document(uid)
+                                                    .update("addresses", updatedAddresses)
+                                                    .await()
+
+                                                // Reload from Firestore to ensure consistency
+                                                loadAddresses()
+
+                                                AppUtil.showSnackbar(scope, snackbarHostState, "Default address updated")
+                                            }
+                                        } catch (e: Exception) {
+                                            AppUtil.showSnackbar(scope, snackbarHostState, "Error updating address")
+                                            isUpdating = false
+                                        }
                                     }
-                                } catch (e: Exception) {
-                                    AppUtil.showSnackbar(scope, snackbarHostState, "Error updating address")
                                 }
                             }
-                        }
-                    )
-                    Spacer(modifier = Modifier.height(12.dp))
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+                    }
+                }
+
+                // Loading overlay when updating
+                if (isUpdating) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(paddingValues),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator()
+                    }
                 }
             }
         }
@@ -173,6 +255,7 @@ fun ManageAddressesScreen(modifier: Modifier = Modifier, navController: NavHostC
                         onClick = {
                             scope.launch {
                                 try {
+                                    isUpdating = true
                                     val uid = FirebaseAuth.getInstance().currentUser?.uid
                                     if (uid != null) {
                                         val updatedAddresses = addresses.filter { it.id != address.id }
@@ -192,11 +275,14 @@ fun ManageAddressesScreen(modifier: Modifier = Modifier, navController: NavHostC
                                             .update("addresses", finalAddresses)
                                             .await()
 
-                                        addresses = finalAddresses
+                                        // Reload addresses
+                                        loadAddresses()
+
                                         AppUtil.showSnackbar(scope, snackbarHostState, "Address deleted")
                                     }
                                 } catch (e: Exception) {
                                     AppUtil.showSnackbar(scope, snackbarHostState, "Error deleting address")
+                                    isUpdating = false
                                 } finally {
                                     showDeleteDialog = null
                                 }
@@ -219,6 +305,7 @@ fun ManageAddressesScreen(modifier: Modifier = Modifier, navController: NavHostC
 @Composable
 fun AddressCard(
     address: AddressModel,
+    isUpdating: Boolean = false,
     onEdit: () -> Unit,
     onDelete: () -> Unit,
     onSetDefault: () -> Unit
@@ -309,7 +396,8 @@ fun AddressCard(
                 if (!address.isDefault) {
                     OutlinedButton(
                         onClick = onSetDefault,
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier.weight(1f),
+                        enabled = !isUpdating
                     ) {
                         Text("Set as Default", fontSize = 12.sp)
                     }
@@ -317,7 +405,8 @@ fun AddressCard(
 
                 OutlinedButton(
                     onClick = onEdit,
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
+                    enabled = !isUpdating
                 ) {
                     Icon(
                         imageVector = Icons.Outlined.Edit,
@@ -333,7 +422,8 @@ fun AddressCard(
                     modifier = Modifier.weight(1f),
                     colors = ButtonDefaults.outlinedButtonColors(
                         contentColor = MaterialTheme.colorScheme.error
-                    )
+                    ),
+                    enabled = !isUpdating
                 ) {
                     Icon(
                         imageVector = Icons.Outlined.Delete,

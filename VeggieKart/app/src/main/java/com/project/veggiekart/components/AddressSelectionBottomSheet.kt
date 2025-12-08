@@ -33,27 +33,38 @@ fun AddressSelectionBottomSheet(
 ) {
     var addresses by remember { mutableStateOf<List<AddressModel>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
+    var isUpdating by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    // Function to load addresses
+    fun loadAddresses() {
+        scope.launch {
+            val uid = FirebaseAuth.getInstance().currentUser?.uid
+            if (uid != null) {
+                try {
+                    val doc = FirebaseFirestore.getInstance()
+                        .collection("users")
+                        .document(uid)
+                        .get()
+                        .await()
+                    val user = doc.toObject(UserModel::class.java)
+                    addresses = user?.addresses ?: emptyList()
+                } catch (e: Exception) {
+                    snackbarHostState.showSnackbar("Error loading addresses: ${e.localizedMessage}")
+                } finally {
+                    isLoading = false
+                    isUpdating = false
+                }
+            } else {
+                isLoading = false
+                isUpdating = false
+            }
+        }
+    }
 
     LaunchedEffect(Unit) {
-        val uid = FirebaseAuth.getInstance().currentUser?.uid
-        if (uid != null) {
-            try {
-                val doc = FirebaseFirestore.getInstance()
-                    .collection("users")
-                    .document(uid)
-                    .get()
-                    .await()
-                val user = doc.toObject(UserModel::class.java)
-                addresses = user?.addresses ?: emptyList()
-            } catch (e: Exception) {
-                // Handle error
-            } finally {
-                isLoading = false
-            }
-        } else {
-            isLoading = false
-        }
+        loadAddresses()
     }
 
     ModalBottomSheet(
@@ -79,7 +90,8 @@ fun AddressSelectionBottomSheet(
                     onClick = {
                         onDismiss()
                         GlobalNavigation.navController.navigate("manage-addresses")
-                    }
+                    },
+                    enabled = !isUpdating
                 ) {
                     Text("Manage")
                 }
@@ -134,26 +146,37 @@ fun AddressSelectionBottomSheet(
                     items(addresses) { address ->
                         AddressItemSheet(
                             address = address,
+                            isUpdating = isUpdating,
                             onClick = {
-                                scope.launch {
-                                    // Set as default
-                                    try {
-                                        val uid = FirebaseAuth.getInstance().currentUser?.uid
-                                        if (uid != null) {
-                                            val updatedAddresses = addresses.map {
-                                                it.copy(isDefault = it.id == address.id)
-                                            }
-                                            FirebaseFirestore.getInstance()
-                                                .collection("users")
-                                                .document(uid)
-                                                .update("addresses", updatedAddresses)
-                                                .await()
+                                if (!isUpdating) {
+                                    isUpdating = true
+                                    scope.launch {
+                                        try {
+                                            val uid = FirebaseAuth.getInstance().currentUser?.uid
+                                            if (uid != null) {
+                                                // Update all addresses - set selected one as default, others as non-default
+                                                val updatedAddresses = addresses.map {
+                                                    it.copy(isDefault = it.id == address.id)
+                                                }
 
-                                            onAddressSelected(address)
-                                            onDismiss()
+                                                // Update in Firestore
+                                                FirebaseFirestore.getInstance()
+                                                    .collection("users")
+                                                    .document(uid)
+                                                    .update("addresses", updatedAddresses)
+                                                    .await()
+
+                                                // Reload addresses to ensure consistency
+                                                loadAddresses()
+
+                                                // Notify parent and dismiss
+                                                onAddressSelected(address.copy(isDefault = true))
+                                                onDismiss()
+                                            }
+                                        } catch (e: Exception) {
+                                            snackbarHostState.showSnackbar("Error: ${e.localizedMessage}")
+                                            isUpdating = false
                                         }
-                                    } catch (e: Exception) {
-                                        // Handle error
                                     }
                                 }
                             }
@@ -170,7 +193,8 @@ fun AddressSelectionBottomSheet(
                                 onDismiss()
                                 GlobalNavigation.navController.navigate("add-address")
                             },
-                            modifier = Modifier.fillMaxWidth()
+                            modifier = Modifier.fillMaxWidth(),
+                            enabled = !isUpdating
                         ) {
                             Icon(Icons.Default.Add, contentDescription = null)
                             Spacer(modifier = Modifier.width(4.dp))
@@ -181,24 +205,41 @@ fun AddressSelectionBottomSheet(
                 }
             }
         }
+
+        // Snackbar for error messages
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier.padding(16.dp)
+        )
     }
 }
 
 @Composable
-fun AddressItemSheet(address: AddressModel, onClick: () -> Unit) {
+fun AddressItemSheet(
+    address: AddressModel,
+    isUpdating: Boolean = false,
+    onClick: () -> Unit
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick)
+            .clickable(enabled = !isUpdating, onClick = onClick)
             .padding(vertical = 8.dp),
         verticalAlignment = Alignment.Top
     ) {
-        Icon(
-            imageVector = if (address.isDefault) Icons.Filled.CheckCircle else Icons.Outlined.Circle,
-            contentDescription = null,
-            tint = if (address.isDefault) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.size(24.dp)
-        )
+        if (isUpdating) {
+            CircularProgressIndicator(
+                modifier = Modifier.size(24.dp),
+                strokeWidth = 2.dp
+            )
+        } else {
+            Icon(
+                imageVector = if (address.isDefault) Icons.Filled.CheckCircle else Icons.Outlined.Circle,
+                contentDescription = null,
+                tint = if (address.isDefault) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(24.dp)
+            )
+        }
         Spacer(modifier = Modifier.width(12.dp))
         Column(modifier = Modifier.weight(1f)) {
             Row(

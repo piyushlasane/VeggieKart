@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.project.veggiekart.AddressUpdateNotifier
 import com.project.veggiekart.GlobalNavigation
 import com.project.veggiekart.model.AddressModel
 import com.project.veggiekart.model.UserModel
@@ -37,7 +38,7 @@ fun HeaderView(modifier: Modifier = Modifier) {
     val isLoggedIn = FirebaseAuth.getInstance().currentUser != null
 
     // Load default address
-    LaunchedEffect(refreshTrigger) {
+    LaunchedEffect(refreshTrigger, AddressUpdateNotifier.getUpdateTrigger()) {
         if (isLoggedIn) {
             loadDefaultAddress { address ->
                 defaultAddress = address
