@@ -1,5 +1,7 @@
 package com.project.veggiekart
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
@@ -15,6 +17,7 @@ import com.project.veggiekart.pages.ProductDetailsPage
 import com.project.veggiekart.screens.*
 import kotlinx.coroutines.tasks.await
 
+@RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @Composable
 fun AppNavigation(modifier: Modifier = Modifier) {
     val navController = rememberNavController()
@@ -56,8 +59,9 @@ fun AppNavigation(modifier: Modifier = Modifier) {
             composable("manage-addresses") {
                 ManageAddressesScreen(modifier, navController)
             }
-            composable("add-address") {
-                AddAddressScreen(modifier, navController)
+            composable("add-address/{addressId}") {
+                val addressId = it.arguments?.getString("addressId")
+                AddAddressScreen(modifier, navController, addressId)
             }
             composable("category-products/{categoryId}") {
                 val categoryId = it.arguments?.getString("categoryId")

@@ -1,6 +1,5 @@
 package com.project.veggiekart.screens
 
-import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -40,7 +39,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -73,7 +71,6 @@ fun ManageAddressesScreen(modifier: Modifier = Modifier, navController: NavHostC
     var showDeleteDialog by remember { mutableStateOf<AddressModel?>(null) }
     val addressUpdateTrigger by AddressUpdateNotifier.updateTrigger
 
-    // Function to load addresses from Firestore
     fun loadAddresses() {
         scope.launch {
             val uid = FirebaseAuth.getInstance().currentUser?.uid
@@ -101,25 +98,6 @@ fun ManageAddressesScreen(modifier: Modifier = Modifier, navController: NavHostC
         loadAddresses()
     }
 
-    // Reload addresses when returning from add-address screen
-    DisposableEffect(Unit) {
-        val callback = navController.currentBackStackEntry
-            ?.savedStateHandle
-            ?.getLiveData<Boolean>("address_updated")
-            ?.observeForever { updated ->
-                if (updated == true) {
-                    loadAddresses()
-                    navController.currentBackStackEntry
-                        ?.savedStateHandle
-                        ?.remove<Boolean>("address_updated")
-                }
-            }
-
-        onDispose {
-            // Cleanup if needed
-        }
-    }
-
     Scaffold(
         topBar = {
             TopAppBar(
@@ -133,7 +111,7 @@ fun ManageAddressesScreen(modifier: Modifier = Modifier, navController: NavHostC
         },
         floatingActionButton = {
             FloatingActionButton(
-                onClick = { navController.navigate("add-address") },
+                onClick = { navController.navigate("add-address/null") },
                 containerColor = MaterialTheme.colorScheme.primary
             ) {
                 Icon(Icons.Default.Add, contentDescription = "Add Address")
@@ -192,7 +170,7 @@ fun ManageAddressesScreen(modifier: Modifier = Modifier, navController: NavHostC
                             address = address,
                             isUpdating = isUpdating,
                             onEdit = {
-                                // TODO: Edit functionality
+                                navController.navigate("add-address/${address.id}")
                             },
                             onDelete = {
                                 showDeleteDialog = address
@@ -204,23 +182,17 @@ fun ManageAddressesScreen(modifier: Modifier = Modifier, navController: NavHostC
                                         try {
                                             val uid = FirebaseAuth.getInstance().currentUser?.uid
                                             if (uid != null) {
-                                                // Update all addresses - set selected as default, others as non-default
                                                 val updatedAddresses = addresses.map {
                                                     it.copy(isDefault = it.id == address.id)
                                                 }
 
-                                                // Update in Firestore
                                                 FirebaseFirestore.getInstance()
                                                     .collection("users")
                                                     .document(uid)
                                                     .update("addresses", updatedAddresses)
                                                     .await()
 
-                                                Log.d("ADDR", "Updated addresses, notifying in  SCREEN")
-                                                // Notify the global notifier to update HeaderView
                                                 AddressUpdateNotifier.notifyAddressUpdated()
-
-                                                // Reload from Firestore to ensure consistency
                                                 loadAddresses()
 
                                                 AppUtil.showSnackbar(scope, snackbarHostState, "Default address updated")
@@ -238,7 +210,6 @@ fun ManageAddressesScreen(modifier: Modifier = Modifier, navController: NavHostC
                     }
                 }
 
-                // Loading overlay when updating
                 if (isUpdating) {
                     Box(
                         modifier = Modifier
@@ -252,15 +223,15 @@ fun ManageAddressesScreen(modifier: Modifier = Modifier, navController: NavHostC
             }
         }
 
-        // Delete Confirmation Dialog
         showDeleteDialog?.let { address ->
             AlertDialog(
-                onDismissRequest = { },
+                onDismissRequest = { showDeleteDialog = null },
                 title = { Text("Delete Address") },
                 text = { Text("Are you sure you want to delete this address?") },
                 confirmButton = {
                     TextButton(
                         onClick = {
+                            showDeleteDialog = null
                             scope.launch {
                                 try {
                                     isUpdating = true
@@ -268,7 +239,7 @@ fun ManageAddressesScreen(modifier: Modifier = Modifier, navController: NavHostC
                                     if (uid != null) {
                                         val updatedAddresses = addresses.filter { it.id != address.id }
 
-                                        // If deleted address was default and there are other addresses, set first as default
+                                        // If deleted address was default and there are others, set first as default
                                         val finalAddresses = if (address.isDefault && updatedAddresses.isNotEmpty()) {
                                             updatedAddresses.mapIndexed { index, addr ->
                                                 if (index == 0) addr.copy(isDefault = true) else addr
@@ -283,7 +254,7 @@ fun ManageAddressesScreen(modifier: Modifier = Modifier, navController: NavHostC
                                             .update("addresses", finalAddresses)
                                             .await()
 
-                                        // Reload addresses
+                                        AddressUpdateNotifier.notifyAddressUpdated()
                                         loadAddresses()
 
                                         AppUtil.showSnackbar(scope, snackbarHostState, "Address deleted")
@@ -300,7 +271,7 @@ fun ManageAddressesScreen(modifier: Modifier = Modifier, navController: NavHostC
                     }
                 },
                 dismissButton = {
-                    TextButton(onClick = { }) {
+                    TextButton(onClick = { showDeleteDialog = null }) {
                         Text("Cancel")
                     }
                 }
@@ -375,25 +346,14 @@ fun AddressCard(
             }
 
             Spacer(modifier = Modifier.height(4.dp))
-
             Text(
                 text = address.phone,
                 fontSize = 14.sp,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
-
             Spacer(modifier = Modifier.height(8.dp))
-
-            Text(
-                text = address.addressLine,
-                fontSize = 14.sp
-            )
-
-            Text(
-                text = "${address.city}, ${address.state} - ${address.pincode}",
-                fontSize = 14.sp
-            )
-
+            Text(text = address.addressLine, fontSize = 14.sp)
+            Text(text = "${address.city}, ${address.state} - ${address.pincode}", fontSize = 14.sp)
             Spacer(modifier = Modifier.height(12.dp))
 
             Row(

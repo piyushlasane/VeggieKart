@@ -1,6 +1,5 @@
 package com.project.veggiekart.components
 
-import android.util.Log
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -40,7 +39,6 @@ fun AddressSelectionBottomSheet(
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
 
-    // Function to load addresses
     suspend fun loadAddresses() {
         val uid = FirebaseAuth.getInstance().currentUser?.uid
         if (uid != null) {
@@ -52,7 +50,6 @@ fun AddressSelectionBottomSheet(
                     .await()
                 val user = doc.toObject(UserModel::class.java)
                 addresses = user?.addresses ?: emptyList()
-                // Set the currently selected address
                 selectedAddressId = addresses.find { it.isDefault }?.id
             } catch (e: Exception) {
                 snackbarHostState.showSnackbar("Error loading addresses: ${e.localizedMessage}")
@@ -134,7 +131,7 @@ fun AddressSelectionBottomSheet(
                     Button(
                         onClick = {
                             onDismiss()
-                            GlobalNavigation.navController.navigate("add-address")
+                            GlobalNavigation.navController.navigate("add-address/null")
                         }
                     ) {
                         Icon(Icons.Default.Add, contentDescription = null)
@@ -143,9 +140,7 @@ fun AddressSelectionBottomSheet(
                     }
                 }
             } else {
-                LazyColumn(
-                    modifier = Modifier.heightIn(max = 400.dp)
-                ) {
+                LazyColumn(modifier = Modifier.heightIn(max = 400.dp)) {
                     items(addresses) { address ->
                         AddressItemSheet(
                             address = address,
@@ -159,32 +154,30 @@ fun AddressSelectionBottomSheet(
                                         try {
                                             val uid = FirebaseAuth.getInstance().currentUser?.uid
                                             if (uid != null) {
-                                                // Update all addresses - set selected one as default, others as non-default
+                                                // Update addresses: set selected as default, others as non-default
                                                 val updatedAddresses = addresses.map {
                                                     it.copy(isDefault = it.id == address.id)
                                                 }
 
-                                                // Update in Firestore
                                                 FirebaseFirestore.getInstance()
                                                     .collection("users")
                                                     .document(uid)
                                                     .update("addresses", updatedAddresses)
                                                     .await()
 
-                                                Log.d("ADDR", "Updated addresses, notifying in  sheet")
-                                                // Notify the global notifier to update HeaderView
+                                                // Notify HeaderView to refresh
                                                 AddressUpdateNotifier.notifyAddressUpdated()
 
-                                                // Reload to ensure consistency
+                                                // Reload addresses
                                                 loadAddresses()
 
-                                                // Find the updated address and pass it to callback
+                                                // Pass selected address to callback
                                                 val updatedAddress = updatedAddresses.find { it.id == address.id }
                                                 if (updatedAddress != null) {
                                                     onAddressSelected(updatedAddress)
                                                 }
 
-                                                // Small delay before dismissing for better UX
+                                                // Delay before dismissing for better UX
                                                 kotlinx.coroutines.delay(300)
                                                 onDismiss()
                                             }
@@ -207,7 +200,7 @@ fun AddressSelectionBottomSheet(
                         OutlinedButton(
                             onClick = {
                                 onDismiss()
-                                GlobalNavigation.navController.navigate("add-address")
+                                GlobalNavigation.navController.navigate("add-address/null")
                             },
                             modifier = Modifier.fillMaxWidth(),
                             enabled = !isUpdating
@@ -222,7 +215,6 @@ fun AddressSelectionBottomSheet(
             }
         }
 
-        // Snackbar for error messages
         SnackbarHost(
             hostState = snackbarHostState,
             modifier = Modifier.padding(16.dp)
@@ -268,9 +260,7 @@ fun AddressItemSheet(
                     fontSize = 16.sp,
                     fontWeight = FontWeight.SemiBold
                 )
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
+                Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                     Surface(
                         shape = RoundedCornerShape(4.dp),
                         color = MaterialTheme.colorScheme.secondaryContainer

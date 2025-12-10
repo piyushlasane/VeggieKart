@@ -22,7 +22,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.MyLocation
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -72,7 +72,11 @@ import java.util.UUID
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddAddressScreen(modifier: Modifier = Modifier, navController: NavHostController) {
+fun AddAddressScreen(
+    modifier: Modifier = Modifier,
+    navController: NavHostController,
+    addressId: String? = null
+) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -112,8 +116,29 @@ fun AddAddressScreen(modifier: Modifier = Modifier, navController: NavHostContro
                     FirebaseFirestore.getInstance().collection("users").document(uid).get().await()
                 val user = doc.toObject(UserModel::class.java)
                 name = user?.name ?: ""
-                phone = user?.phone ?: ""
+                phone = user?.phone?.removePrefix("+91") ?: ""
                 isDefault = user?.addresses.isNullOrEmpty()
+
+                // Load address data if editing
+                if (addressId != null) {
+                    val address = user?.addresses?.find { it.id == addressId }
+                    if (address != null) {
+                        name = address.name
+                        phone = address.phone.removePrefix("+91")
+                        val parts = address.addressLine.split(",")
+                        houseNo = parts.getOrNull(0)?.trim() ?: ""
+                        area = parts.getOrNull(1)?.trim() ?: ""
+                        landmark = address.landmark
+                        city = address.city
+                        state = address.state
+                        pincode = address.pincode
+                        addressType = address.addressType
+                        isDefault = address.isDefault
+                        latitude = address.latitude
+                        longitude = address.longitude
+                    }
+                }
+
             } catch (e: Exception) {
                 // Handle error
             }
@@ -145,9 +170,9 @@ fun AddAddressScreen(modifier: Modifier = Modifier, navController: NavHostContro
     }
 
     Scaffold(topBar = {
-        TopAppBar(title = { Text("Add Delivery Address") }, navigationIcon = {
+        TopAppBar(title = { Text(if (addressId != null) "Edit Address" else "Add Delivery Address") }, navigationIcon = {
             IconButton(onClick = { navController.navigateUp() }) {
-                Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
             }
         })
     }, snackbarHost = { SnackbarHost(snackbarHostState) }) { paddingValues ->
@@ -269,7 +294,7 @@ fun AddAddressScreen(modifier: Modifier = Modifier, navController: NavHostContro
 
             OutlinedTextField(
                 value = phone,
-                onValueChange = { if (it.length <= 10) phone = it },
+                onValueChange = { phone = it },
                 label = { Text("Phone Number") },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
@@ -370,7 +395,7 @@ fun AddAddressScreen(modifier: Modifier = Modifier, navController: NavHostContro
                             return@Button
                         }
 
-                        phone.trim().length !in 10..13 -> {
+                        phone.trim().isEmpty() || phone.trim().length != 10 -> {
                             AppUtil.showSnackbar(
                                 scope, snackbarHostState, "Please enter valid phone number"
                             )
@@ -429,7 +454,7 @@ fun AddAddressScreen(modifier: Modifier = Modifier, navController: NavHostContro
                                 }
 
                                 val newAddress = AddressModel(
-                                    id = UUID.randomUUID().toString(),
+                                    id = addressId ?: UUID.randomUUID().toString(),
                                     name = name.trim(),
                                     phone = phone.trim(),
                                     addressLine = fullAddress,
@@ -443,17 +468,25 @@ fun AddAddressScreen(modifier: Modifier = Modifier, navController: NavHostContro
                                     isDefault = isDefault || currentAddresses.isEmpty()
                                 )
 
+                                // Remove old address if editing
+                                val addressesWithoutCurrent = if (addressId != null) {
+                                    currentAddresses.filter { it.id != addressId }
+                                } else {
+                                    currentAddresses
+                                }
+
                                 // If new address is default, make others non-default
                                 val updatedAddresses = if (newAddress.isDefault) {
-                                    currentAddresses.map { it.copy(isDefault = false) } + newAddress
+                                    addressesWithoutCurrent.map { it.copy(isDefault = false) } + newAddress
                                 } else {
-                                    currentAddresses + newAddress
+                                    addressesWithoutCurrent + newAddress
                                 }
 
                                 userDoc.update("addresses", updatedAddresses).await()
                                 AddressUpdateNotifier.notifyAddressUpdated()
                                 AppUtil.showSnackbar(
-                                    scope, snackbarHostState, "Address saved successfully"
+                                    scope, snackbarHostState,
+                                    if (addressId != null) "Address updated" else "Address saved"
                                 )
                                 kotlinx.coroutines.delay(1000)
                                 navController.navigateUp()
