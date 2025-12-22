@@ -61,7 +61,8 @@ fun AppNavigation(modifier: Modifier = Modifier) {
             }
             composable("add-address/{addressId}") {
                 val addressId = it.arguments?.getString("addressId")
-                AddAddressScreen(modifier, navController, addressId)
+                val actualAddressId = if (addressId == "null") null else addressId
+                AddAddressScreen(modifier, navController, actualAddressId)
             }
             composable("category-products/{categoryId}") {
                 val categoryId = it.arguments?.getString("categoryId")

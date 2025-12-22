@@ -163,7 +163,7 @@ fun ManageAddressesScreen(modifier: Modifier = Modifier, navController: NavHostC
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(paddingValues)
-                        .padding(16.dp)
+                        .padding(horizontal = 16.dp)
                 ) {
                     items(addresses) { address ->
                         AddressCard(
@@ -280,6 +280,8 @@ fun ManageAddressesScreen(modifier: Modifier = Modifier, navController: NavHostC
     }
 }
 
+// Replace the entire AddressCard composable in ManageAddressesScreen.kt
+
 @Composable
 fun AddressCard(
     address: AddressModel,
@@ -311,7 +313,8 @@ fun AddressCard(
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.weight(1f)
                 ) {
                     Text(
                         text = address.name,
@@ -330,17 +333,37 @@ fun AddressCard(
                         )
                     }
                 }
-                if (address.isDefault) {
-                    Surface(
-                        shape = RoundedCornerShape(4.dp),
-                        color = MaterialTheme.colorScheme.primary
-                    ) {
-                        Text(
-                            text = "Default",
-                            fontSize = 12.sp,
-                            color = MaterialTheme.colorScheme.onPrimary,
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-                        )
+
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    if (address.isDefault) {
+                        Surface(
+                            shape = RoundedCornerShape(4.dp),
+                            color = MaterialTheme.colorScheme.primary
+                        ) {
+                            Text(
+                                text = "Default",
+                                fontSize = 12.sp,
+                                color = MaterialTheme.colorScheme.onPrimary,
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                            )
+                        }
+                    } else {
+                        // Delete icon button next to name - ONLY for non-default addresses
+                        IconButton(
+                            onClick = onDelete,
+                            enabled = !isUpdating,
+                            modifier = Modifier.size(32.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Outlined.Delete,
+                                contentDescription = "Delete",
+                                tint = MaterialTheme.colorScheme.error,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
                     }
                 }
             }
@@ -356,11 +379,28 @@ fun AddressCard(
             Text(text = "${address.city}, ${address.state} - ${address.pincode}", fontSize = 14.sp)
             Spacer(modifier = Modifier.height(12.dp))
 
+            // Buttons row
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 if (!address.isDefault) {
+                    // Non-default: Show "Set as Default" and "Edit"
+
+                    OutlinedButton(
+                        onClick = onEdit,
+                        modifier = Modifier.weight(1f),
+                        enabled = !isUpdating
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.Edit,
+                            contentDescription = "Edit",
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text("Edit", fontSize = 12.sp)
+                    }
+
                     OutlinedButton(
                         onClick = onSetDefault,
                         modifier = Modifier.weight(1f),
@@ -368,37 +408,39 @@ fun AddressCard(
                     ) {
                         Text("Set as Default", fontSize = 12.sp)
                     }
-                }
 
-                OutlinedButton(
-                    onClick = onEdit,
-                    modifier = Modifier.weight(1f),
-                    enabled = !isUpdating
-                ) {
-                    Icon(
-                        imageVector = Icons.Outlined.Edit,
-                        contentDescription = "Edit",
-                        modifier = Modifier.size(16.dp)
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text("Edit", fontSize = 12.sp)
-                }
+                } else {
+                    // Default: Show "Edit" and "Delete" buttons
+                    OutlinedButton(
+                        onClick = onEdit,
+                        modifier = Modifier.weight(1f),
+                        enabled = !isUpdating
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.Edit,
+                            contentDescription = "Edit",
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text("Edit", fontSize = 12.sp)
+                    }
 
-                OutlinedButton(
-                    onClick = onDelete,
-                    modifier = Modifier.weight(1f),
-                    colors = ButtonDefaults.outlinedButtonColors(
-                        contentColor = MaterialTheme.colorScheme.error
-                    ),
-                    enabled = !isUpdating
-                ) {
-                    Icon(
-                        imageVector = Icons.Outlined.Delete,
-                        contentDescription = "Delete",
-                        modifier = Modifier.size(16.dp)
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text("Delete", fontSize = 12.sp)
+                    OutlinedButton(
+                        onClick = onDelete,
+                        modifier = Modifier.weight(1f),
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            contentColor = MaterialTheme.colorScheme.error
+                        ),
+                        enabled = !isUpdating
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.Delete,
+                            contentDescription = "Delete",
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text("Delete", fontSize = 12.sp)
+                    }
                 }
             }
         }

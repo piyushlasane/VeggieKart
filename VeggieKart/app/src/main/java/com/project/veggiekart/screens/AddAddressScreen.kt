@@ -178,7 +178,7 @@ fun AddAddressScreen(
     }, snackbarHost = { SnackbarHost(snackbarHostState) }) { paddingValues ->
 
         Column(
-            modifier = modifier
+            modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
                 .verticalScroll(rememberScrollState())
