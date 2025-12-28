@@ -96,11 +96,7 @@ fun CompleteProfileScreen(
                                 AppUtil.showSnackbar(scope, snackbarHostState, "User not found")
                             }
                         } catch (e: Exception) {
-                            AppUtil.showSnackbar(
-                                scope,
-                                snackbarHostState,
-                                "Error: ${e.localizedMessage}"
-                            )
+                            AppUtil.showSnackbar(scope, snackbarHostState, "Error: ${e.localizedMessage}")
                         } finally {
                             isLoading = false
                         }
@@ -126,7 +122,7 @@ fun CompleteProfileScreen(
 
         SnackbarHost(
             hostState = snackbarHostState,
-            modifier = Modifier.align(Alignment.BottomCenter)
+            modifier = Modifier.align(Alignment.BottomCenter).imePadding()
         )
     }
 }

@@ -12,8 +12,7 @@ import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
 import com.google.firebase.firestore.firestore
 import com.project.veggiekart.model.UserModel
-import com.project.veggiekart.pages.CategoryProductsPage
-import com.project.veggiekart.pages.ProductDetailsPage
+import com.project.veggiekart.pages.*
 import com.project.veggiekart.screens.*
 import kotlinx.coroutines.tasks.await
 

@@ -21,16 +21,9 @@ import java.util.concurrent.TimeUnit
 class AuthViewModel : ViewModel() {
 
     var mobileNumber by mutableStateOf("")
-        private set
-
-    var showOtp by mutableStateOf(false)
-        private set
-
+    var showOtpField by mutableStateOf(false)
     var isLoading by mutableStateOf(false)
-        private set
-
     var otpValues = mutableStateListOf<String>().apply { repeat(6) { add("") } }
-        private set
 
     fun updateMobileNumber(input: String) {
         if (input.length <= 10 && input.all { it.isDigit() }) {
@@ -45,7 +38,7 @@ class AuthViewModel : ViewModel() {
     }
 
     fun updateShowOtp(value: Boolean) {
-        showOtp = value
+        showOtpField = value
     }
 
     fun updateLoading(value: Boolean) {

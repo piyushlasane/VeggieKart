@@ -27,7 +27,7 @@ import com.project.veggiekart.pages.CartPage
 fun HomeScreen(modifier: Modifier = Modifier, navcontroller: NavHostController) {
     val navItemList = listOf(
         NavItem("Home", Icons.Filled.Home, Icons.Outlined.Home),
-//        NavItem("Categories", Icons.Filled.Widgets, Icons.Outlined.Widgets),
+        // NavItem("Categories", Icons.Filled.Widgets, Icons.Outlined.Widgets),
         NavItem("Cart", Icons.Filled.ShoppingCart, Icons.Outlined.ShoppingCart),
     )
 
@@ -61,7 +61,7 @@ fun ContentScreen(modifier: Modifier = Modifier, selectedIndex: Int) {
     when (selectedIndex) {
         0 -> HomePage(modifier)
         1 -> CartPage(modifier)
-//        1 -> CategoriesPage(modifier)
+        // 1 -> CategoriesPage(modifier)
     }
 }
 

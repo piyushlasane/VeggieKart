@@ -85,7 +85,7 @@ fun ProductItemView(modifier: Modifier = Modifier, product: ProductModel) {
                     fontWeight = FontWeight.SemiBold
                 )
                 Spacer(modifier = Modifier.weight(1f))
-                IconButton(onClick = {},
+                IconButton(onClick = { /* Add to Cart */ },
                     modifier = Modifier.size(30.dp),
                 ) {
                     Icon(

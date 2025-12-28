@@ -8,5 +8,5 @@ data class UserModel(
     val name: String = "",
     val createdAt: Timestamp = Timestamp.now(),
     val cartItems: Map<String, Long> = emptyMap(),
-    val addresses: List<AddressModel> = emptyList()
+    val addresses: List<AddressModel> = emptyList(),
 )

@@ -47,6 +47,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import com.google.firebase.auth.FirebaseAuth
 import com.project.veggiekart.AppUtil
 import com.project.veggiekart.R
 import com.project.veggiekart.checkProfileComplete
@@ -57,15 +58,13 @@ import kotlinx.coroutines.launch
 fun LoginScreen(modifier: Modifier = Modifier, navController: NavHostController, authViewModel: AuthViewModel = viewModel()) {
 
     val mobileNumber = authViewModel.mobileNumber
-    val showOtp = authViewModel.showOtp
+    val showOtpField = authViewModel.showOtpField
     val isLoading = authViewModel.isLoading
     val otpLength = 6
     val otpValues = authViewModel.otpValues
     val keyboardController = LocalSoftwareKeyboardController.current
     val focusRequesters = List(otpLength) { FocusRequester() }
     val context = LocalContext.current
-
-    // ViewModel and snackbar
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
@@ -74,8 +73,8 @@ fun LoginScreen(modifier: Modifier = Modifier, navController: NavHostController,
             modifier = modifier
                 .fillMaxSize()
                 .padding(horizontal = 32.dp),
+            verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Top
         ) {
 
             Text(
@@ -99,8 +98,9 @@ fun LoginScreen(modifier: Modifier = Modifier, navController: NavHostController,
                 modifier = Modifier.fillMaxWidth(),
                 value = mobileNumber,
                 onValueChange = { authViewModel.updateMobileNumber(it) },
-                label = { Text("Mobile Number (+91)") },
+                label = { Text("Mobile Number") },
                 singleLine = true,
+                leadingIcon = { Text("+91") },
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Number, imeAction = ImeAction.Done
                 )
@@ -108,7 +108,7 @@ fun LoginScreen(modifier: Modifier = Modifier, navController: NavHostController,
 
             Spacer(Modifier.height(16.dp))
 
-            if (!showOtp) {
+            if (!showOtpField) {
                 Button(
                     onClick = {
                         authViewModel.updateLoading(true)
@@ -196,7 +196,7 @@ fun LoginScreen(modifier: Modifier = Modifier, navController: NavHostController,
                             if (success) {
                                 // Check if profile is complete before navigating
                                 scope.launch {
-                                    val uid = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.uid
+                                    val uid = FirebaseAuth.getInstance().currentUser?.uid
                                     if (uid != null) {
                                         val isComplete = checkProfileComplete(uid)
                                         val destination = if (isComplete) "home" else "complete-profile"
