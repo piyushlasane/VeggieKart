@@ -10,18 +10,23 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.project.veggiekart.pages.HomePage
 import com.project.veggiekart.pages.CartPage
+import com.project.veggiekart.viewmodel.CartViewModel
 
 @Composable
 fun HomeScreen(modifier: Modifier = Modifier, navcontroller: NavHostController) {
@@ -32,8 +37,11 @@ fun HomeScreen(modifier: Modifier = Modifier, navcontroller: NavHostController) 
     )
 
     var selectedIndex by rememberSaveable { mutableStateOf(0) }
+    val snackbarHostState = remember { SnackbarHostState() }
+    val cartViewModel: CartViewModel = viewModel()
 
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         bottomBar = {
             NavigationBar {
                 navItemList.forEachIndexed { index, navItem ->
@@ -51,16 +59,26 @@ fun HomeScreen(modifier: Modifier = Modifier, navcontroller: NavHostController) 
             }
         }) {
         val bottomPadding = it.calculateBottomPadding().coerceAtMost(80.dp)
-        ContentScreen(modifier = modifier.padding(bottom = bottomPadding), selectedIndex)
+        ContentScreen(
+            modifier = modifier.padding(bottom = bottomPadding),
+            selectedIndex = selectedIndex,
+            snackbarHostState = snackbarHostState,
+            cartViewModel = cartViewModel
+        )
     }
 
 }
 
 @Composable
-fun ContentScreen(modifier: Modifier = Modifier, selectedIndex: Int) {
+fun ContentScreen(
+    modifier: Modifier = Modifier,
+    selectedIndex: Int,
+    snackbarHostState: SnackbarHostState,
+    cartViewModel: CartViewModel
+) {
     when (selectedIndex) {
         0 -> HomePage(modifier)
-        1 -> CartPage(modifier)
+        1 -> CartPage(modifier, cartViewModel, snackbarHostState)
         // 1 -> CategoriesPage(modifier)
     }
 }

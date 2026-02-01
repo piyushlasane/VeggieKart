@@ -6,29 +6,44 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.google.firebase.Firebase
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.firestore
 import com.project.veggiekart.components.ProductItemView
 import com.project.veggiekart.model.ProductModel
+import com.project.veggiekart.viewmodel.CartViewModel
 
 @Composable
 fun CategoryProductsPage(modifier: Modifier = Modifier, categoryId: String) {
     val productsList = remember {
         mutableStateOf<List<ProductModel>>(emptyList())
     }
+    val snackbarHostState = remember { SnackbarHostState() }
+    val cartViewModel: CartViewModel = viewModel()
+    val isLoggedIn = FirebaseAuth.getInstance().currentUser != null
 
     LaunchedEffect(Unit) {
+        // Load cart to ensure fresh data
+        if (isLoggedIn) {
+            cartViewModel.loadCart()
+        }
+
+        // Load products
         Firebase.firestore.collection("data").document("stock")
             .collection("products")
             .whereEqualTo("category", categoryId)
             .get().addOnCompleteListener {
-                if(it.isSuccessful){
+                if (it.isSuccessful) {
                     val resultList = it.result.documents.mapNotNull { doc ->
                         doc.toObject(ProductModel::class.java)
                     }
@@ -37,20 +52,30 @@ fun CategoryProductsPage(modifier: Modifier = Modifier, categoryId: String) {
             }
     }
 
-    LazyColumn (
-        modifier = modifier.fillMaxSize()
-            .padding(16.dp)
-    ){
-        items(productsList.value.chunked(2)){ rowItems ->
-            Row {
-                rowItems.forEach {
-                    ProductItemView(product = it, modifier = Modifier.weight(1f))
-                }
-                if(rowItems.size==1){
-                    Spacer(modifier = Modifier.weight(1f))
+    Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) }
+    ) { paddingValues ->
+        LazyColumn(
+            modifier = modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .padding(16.dp)
+        ) {
+            items(productsList.value.chunked(2)) { rowItems ->
+                Row {
+                    rowItems.forEach {
+                        ProductItemView(
+                            product = it,
+                            modifier = Modifier.weight(1f),
+                            cartViewModel = cartViewModel,
+                            snackbarHostState = snackbarHostState
+                        )
+                    }
+                    if (rowItems.size == 1) {
+                        Spacer(modifier = Modifier.weight(1f))
+                    }
                 }
             }
         }
     }
-
 }

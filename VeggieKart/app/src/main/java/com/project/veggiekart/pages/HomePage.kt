@@ -7,38 +7,62 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.google.firebase.auth.FirebaseAuth
 import com.project.veggiekart.components.BannerView
 import com.project.veggiekart.components.CategoriesView
 import com.project.veggiekart.components.HeaderView
+import com.project.veggiekart.viewmodel.CartViewModel
 
 @Composable
 fun HomePage(modifier: Modifier = Modifier) {
     val scrollState = rememberScrollState()
-    Column (
-        modifier = modifier
-            .fillMaxSize()
-            .verticalScroll(scrollState)
-            .padding(16.dp),
-    ){
-        HeaderView(modifier)
-        Spacer(modifier = Modifier.height(10.dp))
-        BannerView(modifier = Modifier.height(150.dp))
-        Spacer(modifier = Modifier.height(20.dp))
-        Text(
-            "Categories",
-            style = TextStyle(
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold,
+    val snackbarHostState = remember { SnackbarHostState() }
+    val cartViewModel: CartViewModel = viewModel()
+    val isLoggedIn = FirebaseAuth.getInstance().currentUser != null
+
+    // Load cart when page opens to ensure fresh data
+    LaunchedEffect(Unit) {
+        if (isLoggedIn) {
+            cartViewModel.loadCart()
+        }
+    }
+
+    Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) }
+    ) { paddingValues ->
+        Column(
+            modifier = modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .verticalScroll(scrollState)
+                .padding(16.dp),
+        ) {
+            HeaderView(modifier)
+            Spacer(modifier = Modifier.height(10.dp))
+            BannerView(modifier = Modifier.height(150.dp))
+            Spacer(modifier = Modifier.height(20.dp))
+            Text(
+                "Categories",
+                style = TextStyle(
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                )
             )
-        )
-        Spacer(modifier = Modifier.height(20.dp))
-        CategoriesView(modifier)
+            Spacer(modifier = Modifier.height(20.dp))
+            CategoriesView(modifier)
+        }
     }
 }
