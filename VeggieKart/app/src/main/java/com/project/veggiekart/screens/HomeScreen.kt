@@ -58,7 +58,7 @@ fun HomeScreen(modifier: Modifier = Modifier, navcontroller: NavHostController) 
                 }
             }
         }) {
-        val bottomPadding = it.calculateBottomPadding().coerceAtMost(80.dp)
+        val bottomPadding = it.calculateBottomPadding().coerceAtMost(40.dp)
         ContentScreen(
             modifier = modifier.padding(bottom = bottomPadding),
             selectedIndex = selectedIndex,

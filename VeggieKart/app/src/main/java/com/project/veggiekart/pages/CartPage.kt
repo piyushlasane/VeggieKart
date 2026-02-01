@@ -29,8 +29,6 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -122,8 +120,7 @@ fun CartPage(
                     LazyColumn(
                         modifier = Modifier
                             .weight(1f)
-                            .fillMaxWidth(),
-                        contentPadding = androidx.compose.foundation.layout.PaddingValues(bottom = 16.dp)
+                            .fillMaxSize(),
                     ) {
                         items(cartState.items) { cartItem ->
                             CartItemCard(
