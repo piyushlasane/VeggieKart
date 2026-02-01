@@ -7,8 +7,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -27,7 +25,7 @@ import com.project.veggiekart.components.HeaderView
 import com.project.veggiekart.viewmodel.CartViewModel
 
 @Composable
-fun HomePage(modifier: Modifier = Modifier) {
+fun HomePage(modifier: Modifier = Modifier, snackbarHostState: SnackbarHostState) {
     val scrollState = rememberScrollState()
     val snackbarHostState = remember { SnackbarHostState() }
     val cartViewModel: CartViewModel = viewModel()
@@ -40,29 +38,25 @@ fun HomePage(modifier: Modifier = Modifier) {
         }
     }
 
-    Scaffold(
-        snackbarHost = { SnackbarHost(snackbarHostState) }
-    ) { paddingValues ->
-        Column(
-            modifier = modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .verticalScroll(scrollState)
-                .padding(16.dp),
-        ) {
-            HeaderView(modifier)
-            Spacer(modifier = Modifier.height(10.dp))
-            BannerView(modifier = Modifier.height(150.dp))
-            Spacer(modifier = Modifier.height(20.dp))
-            Text(
-                "Categories",
-                style = TextStyle(
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold,
-                )
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .verticalScroll(scrollState)
+            .padding(16.dp),
+    ) {
+        HeaderView(modifier)
+        Spacer(modifier = Modifier.height(10.dp))
+        BannerView(modifier = Modifier.height(150.dp))
+        Spacer(modifier = Modifier.height(20.dp))
+        Text(
+            "Categories",
+            style = TextStyle(
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold,
             )
-            Spacer(modifier = Modifier.height(20.dp))
-            CategoriesView(modifier)
-        }
+        )
+        Spacer(modifier = Modifier.height(20.dp))
+        CategoriesView(modifier)
+        Spacer(modifier = Modifier.height(20.dp))
     }
 }

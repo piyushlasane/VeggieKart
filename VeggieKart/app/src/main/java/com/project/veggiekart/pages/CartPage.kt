@@ -96,13 +96,14 @@ fun CartPage(
 
             else -> {
                 Column(
-                    modifier = modifier.fillMaxSize()
+                    modifier = Modifier.fillMaxSize()
+                        .padding(bottom = 40.dp)
                 ) {
                     // Header
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(16.dp),
+                            .padding(top = 16.dp, start = 16.dp, end = 16.dp),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {

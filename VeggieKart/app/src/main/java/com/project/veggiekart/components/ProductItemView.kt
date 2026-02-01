@@ -58,6 +58,7 @@ fun ProductItemView(
     val scope = rememberCoroutineScope()
     val isLoggedIn = FirebaseAuth.getInstance().currentUser != null
     val cartState by cartViewModel.cartState.collectAsState()
+    val snackbarHostState = remember { SnackbarHostState() }
 
     // Check if product is in cart
     val isInCart = cartState.items.any { it.product.id == product.id }

@@ -77,7 +77,7 @@ fun ContentScreen(
     cartViewModel: CartViewModel
 ) {
     when (selectedIndex) {
-        0 -> HomePage(modifier)
+        0 -> HomePage(modifier, snackbarHostState)
         1 -> CartPage(modifier, cartViewModel, snackbarHostState)
         // 1 -> CategoriesPage(modifier)
     }
