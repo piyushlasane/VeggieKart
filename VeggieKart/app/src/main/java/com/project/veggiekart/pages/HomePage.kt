@@ -27,7 +27,6 @@ import com.project.veggiekart.viewmodel.CartViewModel
 @Composable
 fun HomePage(modifier: Modifier = Modifier, snackbarHostState: SnackbarHostState) {
     val scrollState = rememberScrollState()
-    val snackbarHostState = remember { SnackbarHostState() }
     val cartViewModel: CartViewModel = viewModel()
     val isLoggedIn = FirebaseAuth.getInstance().currentUser != null
 

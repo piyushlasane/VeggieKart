@@ -2,7 +2,11 @@ package com.project.veggiekart
 
 import android.os.Build
 import androidx.annotation.RequiresApi
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -35,46 +39,50 @@ fun AppNavigation(modifier: Modifier = Modifier) {
         }
     }
 
-    startDestination?.let { start ->
-        NavHost(navController = navController, startDestination = start) {
-            composable("auth") {
-                AuthScreen(modifier, navController)
-            }
-            composable("login") {
-                LoginScreen(modifier, navController)
-            }
-            composable("complete-profile") {
-                CompleteProfileScreen(modifier, navController)
-            }
-            composable("home") {
-                HomeScreen(modifier, navController)
-            }
-            composable("profile") {
-                ProfileScreen(modifier, navController)
-            }
-            composable("edit-profile") {
-                EditProfileScreen(modifier, navController)
-            }
-            composable("manage-addresses") {
-                ManageAddressesScreen(modifier, navController)
-            }
-            composable("add-address/{addressId}") {
-                val addressId = it.arguments?.getString("addressId")
-                val actualAddressId = if (addressId == "null") null else addressId
-                AddAddressScreen(modifier, navController, actualAddressId)
-            }
-            composable("category-products/{categoryId}") {
-                val categoryId = it.arguments?.getString("categoryId")
-                CategoryProductsPage(modifier, categoryId ?: "")
-            }
-            composable("product-details/{productId}") {
-                val productId = it.arguments?.getString("productId")
-                ProductDetailsPage(modifier, productId ?: "")
-            }
+    if (startDestination == null) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator()
+        }
+        return
+    }
+
+    NavHost(navController = navController, startDestination = startDestination!!) {
+        composable("auth") {
+            AuthScreen(modifier, navController)
+        }
+        composable("login") {
+            LoginScreen(modifier, navController)
+        }
+        composable("complete-profile") {
+            CompleteProfileScreen(modifier, navController)
+        }
+        composable("home") {
+            HomeScreen(modifier, navController)
+        }
+        composable("profile") {
+            ProfileScreen(modifier, navController)
+        }
+        composable("edit-profile") {
+            EditProfileScreen(modifier, navController)
+        }
+        composable("manage-addresses") {
+            ManageAddressesScreen(modifier, navController)
+        }
+        composable("add-address/{addressId}") {
+            val addressId = it.arguments?.getString("addressId")
+            val actualAddressId = if (addressId == "null") null else addressId
+            AddAddressScreen(modifier, navController, actualAddressId)
+        }
+        composable("category-products/{categoryId}") {
+            val categoryId = it.arguments?.getString("categoryId")
+            CategoryProductsPage(modifier, categoryId ?: "")
+        }
+        composable("product-details/{productId}") {
+            val productId = it.arguments?.getString("productId")
+            ProductDetailsPage(modifier, productId ?: "")
         }
     }
 }
-
 suspend fun checkProfileComplete(uid: String): Boolean {
     return try {
         val doc = Firebase.firestore.collection("users").document(uid).get().await()

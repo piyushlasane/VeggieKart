@@ -58,7 +58,6 @@ fun ProductItemView(
     val scope = rememberCoroutineScope()
     val isLoggedIn = FirebaseAuth.getInstance().currentUser != null
     val cartState by cartViewModel.cartState.collectAsState()
-    val snackbarHostState = remember { SnackbarHostState() }
 
     // Check if product is in cart
     val isInCart = cartState.items.any { it.product.id == product.id }
@@ -159,7 +158,8 @@ fun ProductItemView(
                             modifier = Modifier.size(21.dp),
                             imageVector = if (isInCart) Icons.Filled.ShoppingCart else Icons.Outlined.ShoppingCart,
                             contentDescription = if (isInCart) "Remove from Cart" else "Add to Cart",
-                            tint = if (isInCart) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+                            tint = if (isInCart) MaterialTheme.colorScheme.primary
+                                    else MaterialTheme.colorScheme.onSurface
                         )
                     }
                 }
