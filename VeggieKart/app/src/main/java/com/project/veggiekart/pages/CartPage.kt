@@ -75,6 +75,18 @@ fun CartPage(
         }
     }
 
+    // Surface items that used to be in the cart but could no longer be
+    // resolved (e.g. product was deleted) instead of letting them silently disappear.
+    LaunchedEffect(cartState.unavailableProductIds) {
+        if (cartState.unavailableProductIds.isNotEmpty()) {
+            AppUtil.showSnackbar(
+                scope,
+                snackbarHostState,
+                cartState.error ?: "Some items in your cart are no longer available"
+            )
+        }
+    }
+
     Box(modifier = modifier.fillMaxSize()) {
         when {
             !isLoggedIn -> {

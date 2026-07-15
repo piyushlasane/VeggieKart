@@ -6,14 +6,12 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.FirebaseFirestore
 import com.project.veggiekart.model.ProductModel
-import com.project.veggiekart.model.UserModel
+import com.project.veggiekart.repository.CartRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.tasks.await
 
 data class CartItem(
     val product: ProductModel,
@@ -25,13 +23,17 @@ data class CartState(
     val isLoading: Boolean = false,
     val error: String? = null,
     val totalAmount: Double = 0.0,
-    val totalItems: Int = 0
+    val totalItems: Int = 0,
+    // Products that were in the cart but couldn't be loaded (deleted/broken doc),
+    // surfaced to the UI instead of silently vanishing.
+    val unavailableProductIds: List<String> = emptyList()
 )
 
-class CartViewModel : ViewModel() {
+class CartViewModel(
+    private val repository: CartRepository = CartRepository()
+) : ViewModel() {
 
     private val auth = FirebaseAuth.getInstance()
-    private val firestore = FirebaseFirestore.getInstance()
 
     private val _cartState = MutableStateFlow(CartState())
     val cartState: StateFlow<CartState> = _cartState.asStateFlow()
@@ -54,38 +56,15 @@ class CartViewModel : ViewModel() {
             try {
                 _cartState.value = _cartState.value.copy(isLoading = true, error = null)
 
-                // Get user document
-                val userDoc = firestore.collection("users").document(uid).get().await()
-                val user = userDoc.toObject(UserModel::class.java)
-                val cartItems = user?.cartItems ?: emptyMap()
-
-                if (cartItems.isEmpty()) {
+                val cartMap = repository.getCartMap(uid)
+                if (cartMap.isEmpty()) {
                     _cartState.value = CartState(isLoading = false)
                     return@launch
                 }
 
-                // Fetch product details for each cart item
-                val items = mutableListOf<CartItem>()
-                for ((productId, quantity) in cartItems) {
-                    try {
-                        val productDoc = firestore.collection("data")
-                            .document("stock")
-                            .collection("products")
-                            .document(productId)
-                            .get()
-                            .await()
+                val result = repository.resolveProducts(cartMap)
 
-                        val product = productDoc.toObject(ProductModel::class.java)
-                        if (product != null) {
-                            items.add(CartItem(product, quantity))
-                        }
-                    } catch (e: Exception) {
-                        // Skip this product if fetch fails
-                        continue
-                    }
-                }
-
-                // Calculate totals
+                val items = result.items.map { (_, pair) -> CartItem(pair.first, pair.second) }
                 val totalAmount = items.sumOf {
                     (it.product.actualPrice.toDoubleOrNull() ?: 0.0) * it.quantity
                 }
@@ -95,7 +74,11 @@ class CartViewModel : ViewModel() {
                     items = items,
                     isLoading = false,
                     totalAmount = totalAmount,
-                    totalItems = totalItems
+                    totalItems = totalItems,
+                    unavailableProductIds = result.unavailableProductIds,
+                    error = if (result.unavailableProductIds.isNotEmpty())
+                        "${result.unavailableProductIds.size} item(s) in your cart are no longer available"
+                    else null
                 )
 
             } catch (e: Exception) {
@@ -116,22 +99,9 @@ class CartViewModel : ViewModel() {
 
         viewModelScope.launch {
             try {
-                val userDoc = firestore.collection("users").document(uid)
-                val snapshot = userDoc.get().await()
-                val user = snapshot.toObject(UserModel::class.java)
-                val currentCart = user?.cartItems?.toMutableMap() ?: mutableMapOf()
-
-                // Increment quantity or add new item
-                val currentQty = currentCart[productId] ?: 0L
-                currentCart[productId] = currentQty + 1
-
-                // Update Firestore
-                userDoc.update("cartItems", currentCart).await()
-
-                // Reload cart
+                repository.incrementItem(uid, productId)
                 loadCart()
                 onResult(true, "Added to cart")
-
             } catch (e: Exception) {
                 onResult(false, e.localizedMessage ?: "Failed to add to cart")
             }
@@ -152,17 +122,9 @@ class CartViewModel : ViewModel() {
 
         viewModelScope.launch {
             try {
-                val userDoc = firestore.collection("users").document(uid)
-                val snapshot = userDoc.get().await()
-                val user = snapshot.toObject(UserModel::class.java)
-                val currentCart = user?.cartItems?.toMutableMap() ?: mutableMapOf()
-
-                currentCart[productId] = newQuantity
-
-                userDoc.update("cartItems", currentCart).await()
+                repository.setItemQuantity(uid, productId, newQuantity)
                 loadCart()
                 onResult(true, "Quantity updated")
-
             } catch (e: Exception) {
                 onResult(false, e.localizedMessage ?: "Failed to update quantity")
             }
@@ -178,17 +140,9 @@ class CartViewModel : ViewModel() {
 
         viewModelScope.launch {
             try {
-                val userDoc = firestore.collection("users").document(uid)
-                val snapshot = userDoc.get().await()
-                val user = snapshot.toObject(UserModel::class.java)
-                val currentCart = user?.cartItems?.toMutableMap() ?: mutableMapOf()
-
-                currentCart.remove(productId)
-
-                userDoc.update("cartItems", currentCart).await()
+                repository.removeItem(uid, productId)
                 loadCart()
                 onResult(true, "Removed from cart")
-
             } catch (e: Exception) {
                 onResult(false, e.localizedMessage ?: "Failed to remove item")
             }
@@ -204,14 +158,9 @@ class CartViewModel : ViewModel() {
 
         viewModelScope.launch {
             try {
-                firestore.collection("users")
-                    .document(uid)
-                    .update("cartItems", emptyMap<String, Long>())
-                    .await()
-
+                repository.clearCart(uid)
                 loadCart()
                 onResult(true, "Cart cleared")
-
             } catch (e: Exception) {
                 onResult(false, e.localizedMessage ?: "Failed to clear cart")
             }
