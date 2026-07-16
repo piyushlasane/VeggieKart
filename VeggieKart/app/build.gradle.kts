@@ -17,6 +17,10 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        // Emulator uses 10.0.2.2 to reach host localhost; swap for your deployed
+        // backend URL (e.g. Render/Railway) once it's live.
+        buildConfigField("String", "PAYMENT_BACKEND_URL", "\"https://veggiekart-payment-backend.onrender.com/\"")
     }
 
     buildTypes {
@@ -37,6 +41,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
@@ -74,5 +79,9 @@ dependencies {
     implementation(libs.play.services.location)
     implementation(libs.osmdroid.android)
 
+    implementation(libs.retrofit)
+    implementation(libs.retrofit.converter.gson)
+    implementation(libs.okhttp.logging.interceptor)
+    implementation(libs.razorpay.checkout)
 
 }

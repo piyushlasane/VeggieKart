@@ -164,8 +164,7 @@ fun CartPage(
                             totalAmount = cartState.totalAmount,
                             totalItems = cartState.totalItems,
                             onCheckout = {
-                                // TODO: Navigate to checkout
-                                AppUtil.showSnackbar(scope, snackbarHostState, "Checkout coming soon!")
+                                navController.navigate("checkout")
                             }
                         )
                     }

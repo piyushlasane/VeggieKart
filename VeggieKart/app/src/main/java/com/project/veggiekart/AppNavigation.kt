@@ -1,7 +1,5 @@
 package com.project.veggiekart
 
-import android.os.Build
-import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.CircularProgressIndicator
@@ -20,7 +18,6 @@ import com.project.veggiekart.pages.*
 import com.project.veggiekart.screens.*
 import kotlinx.coroutines.tasks.await
 
-@RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @Composable
 fun AppNavigation(modifier: Modifier = Modifier) {
     val navController = rememberNavController()
@@ -80,6 +77,13 @@ fun AppNavigation(modifier: Modifier = Modifier) {
         composable("product-details/{productId}") {
             val productId = it.arguments?.getString("productId")
             ProductDetailsPage(modifier, productId ?: "")
+        }
+        composable("checkout") {
+            CheckoutScreen(modifier, navController)
+        }
+        composable("order-confirmation/{orderId}") {
+            val orderId = it.arguments?.getString("orderId")
+            OrderConfirmationScreen(modifier, navController, orderId ?: "")
         }
     }
 }
