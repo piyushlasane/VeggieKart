@@ -110,6 +110,8 @@ fun CheckoutScreen(
         } else if (state is CheckoutState.Failed) {
             AppUtil.showSnackbar(scope, snackbarHostState, state.message)
         }
+        // PaymentSucceededPendingVerification is handled inline below, not as a snackbar -
+        // it needs to stay visible and offer a retry action, not disappear after a few seconds.
     }
 
     Scaffold(
@@ -185,19 +187,21 @@ fun CheckoutScreen(
                             isProcessing = checkoutState is CheckoutState.CreatingOrder ||
                                 checkoutState is CheckoutState.AwaitingPayment ||
                                 checkoutState is CheckoutState.VerifyingPayment,
+                            pendingPaymentId = (checkoutState as? CheckoutState.PaymentSucceededPendingVerification)?.paymentId,
                             onPayNow = {
-                                val addrId = selectedAddressId
-                                if (activity == null || addrId == null) return@CheckoutBottomBar
+                                val selectedAddress = addresses.find { it.id == selectedAddressId }
+                                if (activity == null || selectedAddress == null) return@CheckoutBottomBar
                                 orderViewModel.startCheckout(
                                     activity = activity,
                                     cartItems = cartState.items,
                                     totalAmount = cartState.totalAmount,
-                                    addressId = addrId,
+                                    address = selectedAddress,
                                     userName = userName,
                                     userEmail = FirebaseAuth.getInstance().currentUser?.email ?: "",
                                     userPhone = userPhone
                                 )
-                            }
+                            },
+                            onRetryVerification = { orderViewModel.retryVerification() }
                         )
                     }
                 }
@@ -238,7 +242,13 @@ private fun AddressSelectRow(address: AddressModel, selected: Boolean, onSelect:
 }
 
 @Composable
-private fun CheckoutBottomBar(totalAmount: Double, isProcessing: Boolean, onPayNow: () -> Unit) {
+private fun CheckoutBottomBar(
+    totalAmount: Double,
+    isProcessing: Boolean,
+    pendingPaymentId: String?,
+    onPayNow: () -> Unit,
+    onRetryVerification: () -> Unit
+) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
@@ -258,16 +268,40 @@ private fun CheckoutBottomBar(totalAmount: Double, isProcessing: Boolean, onPayN
                 )
             }
             Spacer(Modifier.height(12.dp))
-            Button(
-                onClick = onPayNow,
-                enabled = !isProcessing,
-                modifier = Modifier.fillMaxWidth().height(50.dp),
-                shape = RoundedCornerShape(12.dp)
-            ) {
-                if (isProcessing) {
-                    CircularProgressIndicator(modifier = Modifier.height(20.dp), color = MaterialTheme.colorScheme.onPrimary)
-                } else {
-                    Text("Pay Now", fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+
+            if (pendingPaymentId != null) {
+                // Payment already succeeded - never show "Pay Now" here, it would charge again.
+                // Only a verification retry (safe, idempotent on the backend) is allowed.
+                Text(
+                    "Your payment went through (id: $pendingPaymentId) but we couldn't confirm it yet. Don't pay again - just retry confirming below.",
+                    fontSize = 13.sp,
+                    color = MaterialTheme.colorScheme.error
+                )
+                Spacer(Modifier.height(8.dp))
+                Button(
+                    onClick = onRetryVerification,
+                    enabled = !isProcessing,
+                    modifier = Modifier.fillMaxWidth().height(50.dp),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    if (isProcessing) {
+                        CircularProgressIndicator(modifier = Modifier.height(20.dp), color = MaterialTheme.colorScheme.onPrimary)
+                    } else {
+                        Text("Retry Confirmation", fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+                    }
+                }
+            } else {
+                Button(
+                    onClick = onPayNow,
+                    enabled = !isProcessing,
+                    modifier = Modifier.fillMaxWidth().height(50.dp),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    if (isProcessing) {
+                        CircularProgressIndicator(modifier = Modifier.height(20.dp), color = MaterialTheme.colorScheme.onPrimary)
+                    } else {
+                        Text("Pay Now", fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+                    }
                 }
             }
         }

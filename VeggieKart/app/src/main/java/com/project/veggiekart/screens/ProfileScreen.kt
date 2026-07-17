@@ -153,7 +153,7 @@ fun LoggedInProfileScreen(modifier: Modifier = Modifier, navController: NavHostC
                 ProfileMenuItem(
                     icon = Icons.Outlined.ShoppingBag,
                     title = "My Orders",
-                    onClick = { /* TODO: Navigate to orders */ }
+                    onClick = { navController.navigate("orders") }
                 )
 
                 ProfileMenuItem(

@@ -3,8 +3,10 @@ package com.project.veggiekart.screens
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.ShoppingBag
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.ShoppingBag
 import androidx.compose.material.icons.outlined.ShoppingCart
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
@@ -26,14 +28,15 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.project.veggiekart.pages.HomePage
 import com.project.veggiekart.pages.CartPage
+import com.project.veggiekart.pages.OrdersPage
 import com.project.veggiekart.viewmodel.CartViewModel
 
 @Composable
 fun HomeScreen(modifier: Modifier = Modifier, navcontroller: NavHostController) {
     val navItemList = listOf(
         NavItem("Home", Icons.Filled.Home, Icons.Outlined.Home),
-        // NavItem("Categories", Icons.Filled.Widgets, Icons.Outlined.Widgets),
         NavItem("Cart", Icons.Filled.ShoppingCart, Icons.Outlined.ShoppingCart),
+        NavItem("Orders", Icons.Filled.ShoppingBag, Icons.Outlined.ShoppingBag),
     )
 
     var selectedIndex by rememberSaveable { mutableStateOf(0) }
@@ -79,7 +82,7 @@ fun ContentScreen(
     when (selectedIndex) {
         0 -> HomePage(modifier, snackbarHostState)
         1 -> CartPage(modifier, cartViewModel, snackbarHostState)
-        // 1 -> CategoriesPage(modifier)
+        2 -> OrdersPage(modifier)
     }
 }
 

@@ -81,6 +81,9 @@ fun AppNavigation(modifier: Modifier = Modifier) {
         composable("checkout") {
             CheckoutScreen(modifier, navController)
         }
+        composable("orders") {
+            OrdersPage(modifier)
+        }
         composable("order-confirmation/{orderId}") {
             val orderId = it.arguments?.getString("orderId")
             OrderConfirmationScreen(modifier, navController, orderId ?: "")
