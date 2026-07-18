@@ -16,12 +16,9 @@ A full-featured grocery delivery Android app — built with **Kotlin** and **Jet
 
 ## 📱 Preview
 
-<p float="left">
-  <img src="https://res.cloudinary.com/dosrhyslq/image/upload/v1766232916/Auth_-_VeggieKart_jnbkdn.jpg" width="220" alt="Auth Screen"/>
-  <img src="https://res.cloudinary.com/dosrhyslq/image/upload/v1766232916/Homepage_-_VeggieKart_wmonjw.jpg" width="220" alt="Home Screen"/>
-  <img src="https://res.cloudinary.com/dosrhyslq/image/upload/v1766232914/Product_-_VeggieKart_srqlkn.jpg" width="220" alt="Product Details"/>
-  <img src="https://res.cloudinary.com/dosrhyslq/image/upload/v1766232914/Address_-_VeggieKart_qzbhco.jpg" width="220" alt="Address Management"/>
-</p>
+| Auth | Home | Product Details |
+|---|---|---|
+| ![Auth](https://res.cloudinary.com/dosrhyslq/image/upload/v1766232916/Auth_-_VeggieKart_jnbkdn.jpg) | ![Home](https://res.cloudinary.com/dosrhyslq/image/upload/v1766232916/Homepage_-_VeggieKart_wmonjw.jpg) | ![Product](https://res.cloudinary.com/dosrhyslq/image/upload/v1766232914/Product_-_VeggieKart_srqlkn.jpg) |
 
 ---
 
