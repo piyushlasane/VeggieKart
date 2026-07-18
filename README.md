@@ -2,19 +2,26 @@
 
 A full-featured grocery delivery Android app — built with **Kotlin** and **Jetpack Compose** — covering the complete flow from browsing to checkout: OTP login, live product catalog, cart, address management, **real Razorpay payments**, and order history, backed by Firebase and a custom payment backend.
 
-[![Android](https://img.shields.io/badge/Platform-Android-green?logo=android)](https://github.com/piyushlasane/VeggieKart)
-[![Kotlin](https://img.shields.io/badge/Language-Kotlin-purple?logo=kotlin)](https://github.com/piyushlasane/VeggieKart)
-[![Jetpack Compose](https://img.shields.io/badge/UI-Jetpack%20Compose-blue)](https://github.com/piyushlasane/VeggieKart)
-[![Firebase](https://img.shields.io/badge/Backend-Firebase-orange?logo=firebase)](https://github.com/piyushlasane/VeggieKart)
-[![Razorpay](https://img.shields.io/badge/Payments-Razorpay-blue)](https://github.com/piyushlasane/VeggieKart)
+<div align="center">
+
+![Android](https://img.shields.io/badge/Platform-Android-green?logo=android)
+![Kotlin](https://img.shields.io/badge/Language-Kotlin-purple?logo=kotlin)
+![Jetpack Compose](https://img.shields.io/badge/UI-Jetpack%20Compose-blue)
+![Firebase](https://img.shields.io/badge/Backend-Firebase-orange?logo=firebase)
+![Razorpay](https://img.shields.io/badge/Payments-Razorpay-0b2447)
+
+</div>
 
 ---
 
 ## 📱 Preview
 
-| Auth | Home | Product Details |
-|---|---|---|
-| ![Auth](https://res.cloudinary.com/dosrhyslq/image/upload/v1766232916/Auth_-_VeggieKart_jnbkdn.jpg) | ![Home](https://res.cloudinary.com/dosrhyslq/image/upload/v1766232916/Homepage_-_VeggieKart_wmonjw.jpg) | ![Product](https://res.cloudinary.com/dosrhyslq/image/upload/v1766232914/Product_-_VeggieKart_srqlkn.jpg) |
+<p float="left">
+  <img src="https://res.cloudinary.com/dosrhyslq/image/upload/v1766232916/Auth_-_VeggieKart_jnbkdn.jpg" width="220" alt="Auth Screen"/>
+  <img src="https://res.cloudinary.com/dosrhyslq/image/upload/v1766232916/Homepage_-_VeggieKart_wmonjw.jpg" width="220" alt="Home Screen"/>
+  <img src="https://res.cloudinary.com/dosrhyslq/image/upload/v1766232914/Product_-_VeggieKart_srqlkn.jpg" width="220" alt="Product Details"/>
+  <img src="https://res.cloudinary.com/dosrhyslq/image/upload/v1766232914/Address_-_VeggieKart_qzbhco.jpg" width="220" alt="Address Management"/>
+</p>
 
 ---
 
@@ -81,3 +88,9 @@ Firestore holds `users` (profile, addresses, cart) and `data` (banners, categori
 
 **Piyush Lasane**
 [GitHub](https://github.com/piyushlasane) · [LinkedIn](https://www.linkedin.com/in/piyushlasane/) · piyushlasane@gmail.com
+
+---
+
+<div align="center">
+  <sub>© 2026 Piyush Lasane — built as a personal/portfolio project</sub>
+</div>
