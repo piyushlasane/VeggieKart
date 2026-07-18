@@ -55,7 +55,8 @@ A full-featured grocery delivery Android app — built with **Kotlin** and **Jet
 | UI | Jetpack Compose, Material 3 |
 | Architecture | MVVM + Repository pattern |
 | Backend | Firebase Auth, Cloud Firestore, Firebase Storage |
-| Payments | Razorpay SDK + Retrofit against a custom order/verify backend |
+| Payments | Razorpay SDK, Retrofit |
+| Backend | Spring Boot (Java 17), Razorpay Java SDK, Firebase Admin SDK, Docker, deployed on Render |
 | Async | Kotlin Coroutines, StateFlow |
 | Image Loading | Coil |
 | Location | Google Play Services (Location) |
@@ -78,6 +79,7 @@ com.project.veggiekart/
 ```
 
 Firestore holds `users` (profile, addresses, cart) and `data` (banners, categories, products), plus a top-level `orders` collection written by the backend after payment signature verification.
+A companion Spring Boot service (private repo) handles order creation and payment signature verification server-side, then writes the confirmed order to Firestore.
 
 ---
 
