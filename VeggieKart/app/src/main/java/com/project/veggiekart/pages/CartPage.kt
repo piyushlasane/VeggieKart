@@ -1,5 +1,6 @@
 package com.project.veggiekart.pages
 
+import androidx.activity.ComponentActivity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -44,6 +45,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
@@ -61,7 +63,7 @@ import com.project.veggiekart.viewmodel.CartViewModel
 @Composable
 fun CartPage(
     modifier: Modifier = Modifier,
-    cartViewModel: CartViewModel = viewModel(),
+    cartViewModel: CartViewModel = viewModel(LocalContext.current as ComponentActivity),
     snackbarHostState: SnackbarHostState
 ) {
     val cartState by cartViewModel.cartState.collectAsState()
@@ -69,11 +71,9 @@ fun CartPage(
     val scope = rememberCoroutineScope()
     var showClearDialog by remember { mutableStateOf(false) }
 
-    LaunchedEffect(Unit) {
-        if (isLoggedIn) {
-            cartViewModel.loadCart()
-        }
-    }
+    // No explicit loadCart() here anymore - cartViewModel is shared app-wide (Activity-scoped)
+    // and loads once when first created / on login. Re-fetching on every visit to this tab
+    // is what caused the full-list flicker and reordering on repeated quantity taps.
 
     // Surface items that used to be in the cart but could no longer be
     // resolved (e.g. product was deleted) instead of letting them silently disappear.
@@ -135,7 +135,10 @@ fun CartPage(
                             .weight(1f)
                             .fillMaxSize(),
                     ) {
-                        items(cartState.items) { cartItem ->
+                        items(
+                            items = cartState.items,
+                            key = { it.product.id } // stable identity: fixes reordering/flicker on rapid taps
+                        ) { cartItem ->
                             CartItemCard(
                                 cartItem = cartItem,
                                 onQuantityChange = { newQty ->

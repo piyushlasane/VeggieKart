@@ -8,6 +8,8 @@ import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
 import com.project.veggiekart.model.ProductModel
 import com.project.veggiekart.repository.CartRepository
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -29,6 +31,14 @@ data class CartState(
     val unavailableProductIds: List<String> = emptyList()
 )
 
+/**
+ * IMPORTANT: This ViewModel must be obtained with an Activity-scoped owner
+ * everywhere it's used, e.g.:
+ *   viewModel(LocalContext.current as ComponentActivity)
+ * instead of the default viewModel(), so every screen shares the same
+ * instance/state instead of each navigation destination getting its own
+ * empty copy that has to reload the cart from scratch.
+ */
 class CartViewModel(
     private val repository: CartRepository = CartRepository()
 ) : ViewModel() {
@@ -41,10 +51,16 @@ class CartViewModel(
     var showSnackbar by mutableStateOf<String?>(null)
         private set
 
+    // Debounces rapid +/- taps per product so we don't fire a Firestore write
+    // on every single tap - only after taps settle for QUANTITY_WRITE_DEBOUNCE_MS.
+    private val pendingWrites = mutableMapOf<String, Job>()
+
     init {
         loadCart()
     }
 
+    /** Full reload from Firestore. Call this on initial load / login change / pull-to-refresh only -
+     * NOT after every cart mutation (those update local state optimistically instead). */
     fun loadCart() {
         val uid = auth.currentUser?.uid
         if (uid == null) {
@@ -90,24 +106,41 @@ class CartViewModel(
         }
     }
 
-    fun addToCart(productId: String, onResult: (Boolean, String) -> Unit) {
+    /** Adds one unit of [product] to the cart. Updates UI instantly (optimistic),
+     * writes to Firestore in the background, and rolls back only if the write fails. */
+    fun addToCart(product: ProductModel, onResult: (Boolean, String) -> Unit) {
         val uid = auth.currentUser?.uid
         if (uid == null) {
             onResult(false, "Please login to add items to cart")
             return
         }
 
+        pendingWrites[product.id]?.cancel()
+
+        val previousState = _cartState.value
+        val existing = previousState.items.find { it.product.id == product.id }
+        val updatedItems = if (existing != null) {
+            previousState.items.map {
+                if (it.product.id == product.id) it.copy(quantity = it.quantity + 1) else it
+            }
+        } else {
+            previousState.items + CartItem(product, 1)
+        }
+        applyLocalItems(previousState, updatedItems)
+
         viewModelScope.launch {
             try {
-                repository.incrementItem(uid, productId)
-                loadCart()
+                repository.incrementItem(uid, product.id)
                 onResult(true, "Added to cart")
             } catch (e: Exception) {
+                _cartState.value = previousState
                 onResult(false, e.localizedMessage ?: "Failed to add to cart")
             }
         }
     }
 
+    /** Sets [productId]'s quantity to [newQuantity]. Updates UI instantly and debounces
+     * the Firestore write so rapid repeated +/- taps only trigger one network write. */
     fun updateQuantity(productId: String, newQuantity: Long, onResult: (Boolean, String) -> Unit) {
         val uid = auth.currentUser?.uid
         if (uid == null) {
@@ -120,10 +153,17 @@ class CartViewModel(
             return
         }
 
-        viewModelScope.launch {
+        val previousState = _cartState.value
+        val updatedItems = previousState.items.map {
+            if (it.product.id == productId) it.copy(quantity = newQuantity) else it
+        }
+        applyLocalItems(previousState, updatedItems)
+
+        pendingWrites[productId]?.cancel()
+        pendingWrites[productId] = viewModelScope.launch {
+            delay(QUANTITY_WRITE_DEBOUNCE_MS)
             try {
                 repository.setItemQuantity(uid, productId, newQuantity)
-                loadCart()
                 onResult(true, "Quantity updated")
             } catch (e: Exception) {
                 onResult(false, e.localizedMessage ?: "Failed to update quantity")
@@ -131,6 +171,7 @@ class CartViewModel(
         }
     }
 
+    /** Removes [productId] from the cart. Updates UI instantly, rolls back on failure. */
     fun removeFromCart(productId: String, onResult: (Boolean, String) -> Unit) {
         val uid = auth.currentUser?.uid
         if (uid == null) {
@@ -138,12 +179,18 @@ class CartViewModel(
             return
         }
 
+        pendingWrites[productId]?.cancel()
+
+        val previousState = _cartState.value
+        val updatedItems = previousState.items.filterNot { it.product.id == productId }
+        applyLocalItems(previousState, updatedItems)
+
         viewModelScope.launch {
             try {
                 repository.removeItem(uid, productId)
-                loadCart()
                 onResult(true, "Removed from cart")
             } catch (e: Exception) {
+                _cartState.value = previousState
                 onResult(false, e.localizedMessage ?: "Failed to remove item")
             }
         }
@@ -156,12 +203,18 @@ class CartViewModel(
             return
         }
 
+        pendingWrites.values.forEach { it.cancel() }
+        pendingWrites.clear()
+
+        val previousState = _cartState.value
+        _cartState.value = CartState(isLoading = false)
+
         viewModelScope.launch {
             try {
                 repository.clearCart(uid)
-                loadCart()
                 onResult(true, "Cart cleared")
             } catch (e: Exception) {
+                _cartState.value = previousState
                 onResult(false, e.localizedMessage ?: "Failed to clear cart")
             }
         }
@@ -179,5 +232,20 @@ class CartViewModel(
     // Helper function to get quantity of product in cart
     fun getProductQuantity(productId: String): Long {
         return _cartState.value.items.find { it.product.id == productId }?.quantity ?: 0L
+    }
+
+    /** Recomputes totals from [items] and pushes them into state, keeping [previousState]'s
+     * other fields (like unavailableProductIds) untouched. */
+    private fun applyLocalItems(previousState: CartState, items: List<CartItem>) {
+        _cartState.value = previousState.copy(
+            items = items,
+            isLoading = false,
+            totalAmount = items.sumOf { (it.product.actualPrice.toDoubleOrNull() ?: 0.0) * it.quantity },
+            totalItems = items.sumOf { it.quantity.toInt() }
+        )
+    }
+
+    companion object {
+        private const val QUANTITY_WRITE_DEBOUNCE_MS = 400L
     }
 }

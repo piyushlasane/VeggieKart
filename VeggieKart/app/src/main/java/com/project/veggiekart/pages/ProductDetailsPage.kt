@@ -1,5 +1,6 @@
 package com.project.veggiekart.pages
 
+import androidx.activity.ComponentActivity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -42,6 +43,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
@@ -64,7 +66,7 @@ import com.tbuonomo.viewpagerdotsindicator.compose.type.ShiftIndicatorType
 fun ProductDetailsPage(
     modifier: Modifier = Modifier,
     productId: String,
-    cartViewModel: CartViewModel = viewModel()
+    cartViewModel: CartViewModel = viewModel(LocalContext.current as ComponentActivity)
 ) {
     var product by remember { mutableStateOf(ProductModel()) }
     var isAddingToCart by remember { mutableStateOf(false) }
@@ -78,11 +80,9 @@ fun ProductDetailsPage(
     val quantityInCart = cartState.items.find { it.product.id == productId }?.quantity ?: 0L
     val isInCart = quantityInCart > 0
 
-    LaunchedEffect(key1 = Unit) {
-        // Load cart to ensure fresh data
-        if (isLoggedIn) {
-            cartViewModel.loadCart()
-        }
+    LaunchedEffect(key1 = productId) {
+        // cartViewModel is shared (Activity-scoped) and already loaded elsewhere -
+        // no need to reload the whole cart just to open this page.
 
         // Load product details
         Firebase.firestore.collection("data").document("stock").collection("products")
@@ -226,18 +226,15 @@ fun ProductDetailsPage(
                 ) {
                     IconButton(
                         onClick = {
-                            isUpdating = true
                             cartViewModel.updateQuantity(
                                 productId,
                                 quantityInCart - 1
                             ) { success, message ->
-                                isUpdating = false
                                 if (!success) {
                                     AppUtil.showSnackbar(scope, snackbarHostState, message)
                                 }
                             }
-                        },
-                        enabled = !isUpdating
+                        }
                     ) {
                         Icon(
                             Icons.Default.Remove,
@@ -247,7 +244,7 @@ fun ProductDetailsPage(
                     }
 
                     Text(
-                        text = if (isUpdating) "..." else quantityInCart.toString(),
+                        text = quantityInCart.toString(),
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onPrimaryContainer
@@ -255,18 +252,15 @@ fun ProductDetailsPage(
 
                     IconButton(
                         onClick = {
-                            isUpdating = true
                             cartViewModel.updateQuantity(
                                 productId,
                                 quantityInCart + 1
                             ) { success, message ->
-                                isUpdating = false
                                 if (!success) {
                                     AppUtil.showSnackbar(scope, snackbarHostState, message)
                                 }
                             }
-                        },
-                        enabled = !isUpdating
+                        }
                     ) {
                         Icon(
                             Icons.Default.Add,
@@ -291,7 +285,7 @@ fun ProductDetailsPage(
                     }
 
                     isAddingToCart = true
-                    cartViewModel.addToCart(product.id) { success, message ->
+                    cartViewModel.addToCart(product) { success, message ->
                         isAddingToCart = false
                         AppUtil.showSnackbar(scope, snackbarHostState, message)
                     }

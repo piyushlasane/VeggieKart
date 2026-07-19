@@ -1,5 +1,6 @@
 package com.project.veggiekart.pages
 
+import androidx.activity.ComponentActivity
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -10,15 +11,13 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.google.firebase.auth.FirebaseAuth
 import com.project.veggiekart.components.BannerView
 import com.project.veggiekart.components.CategoriesView
 import com.project.veggiekart.components.HeaderView
@@ -27,15 +26,9 @@ import com.project.veggiekart.viewmodel.CartViewModel
 @Composable
 fun HomePage(modifier: Modifier = Modifier, snackbarHostState: SnackbarHostState) {
     val scrollState = rememberScrollState()
-    val cartViewModel: CartViewModel = viewModel()
-    val isLoggedIn = FirebaseAuth.getInstance().currentUser != null
-
-    // Load cart when page opens to ensure fresh data
-    LaunchedEffect(Unit) {
-        if (isLoggedIn) {
-            cartViewModel.loadCart()
-        }
-    }
+    // Activity-scoped so this resolves to the SAME CartViewModel instance as every
+    // other screen - loaded once (see HomeScreen), no reload needed here.
+    val cartViewModel: CartViewModel = viewModel(LocalContext.current as ComponentActivity)
 
     Column(
         modifier = modifier
