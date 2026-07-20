@@ -15,6 +15,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.google.firebase.auth.FirebaseAuth
@@ -141,7 +142,7 @@ fun AddressSelectionBottomSheet(
                 }
             } else {
                 LazyColumn(modifier = Modifier.heightIn(max = 400.dp)) {
-                    items(addresses) { address ->
+                    items(addresses, key = { it.id }) { address ->
                         AddressItemSheet(
                             address = address,
                             isSelected = address.id == selectedAddressId,
@@ -258,7 +259,10 @@ fun AddressItemSheet(
                 Text(
                     text = address.name,
                     fontSize = 16.sp,
-                    fontWeight = FontWeight.SemiBold
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.weight(1f, fill = false).padding(end = 8.dp),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
                 Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                     Surface(

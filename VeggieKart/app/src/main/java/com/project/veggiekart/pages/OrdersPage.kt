@@ -87,66 +87,66 @@ fun OrdersPage(modifier: Modifier = Modifier) {
         )
 
         Box(modifier = Modifier.fillMaxSize()) {
-        when (val state = uiState) {
-            is OrdersUiState.Loading -> {
-                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator()
-                }
-            }
-
-            is OrdersUiState.NotSignedIn -> {
-                EmptyState(
-                    title = "Sign in to see your orders",
-                    subtitle = "Your order history will show up here once you're signed in."
-                )
-            }
-
-            is OrdersUiState.Error -> {
-                Column(
-                    modifier = Modifier.fillMaxSize().padding(32.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    Text(
-                        "Couldn't load your orders",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        textAlign = TextAlign.Center
-                    )
-                    Spacer(Modifier.height(4.dp))
-                    Text(
-                        state.message,
-                        fontSize = 13.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        textAlign = TextAlign.Center
-                    )
-                    Spacer(Modifier.height(16.dp))
-                    Button(onClick = { reloadKey++ }) {
-                        Text("Retry")
+            when (val state = uiState) {
+                is OrdersUiState.Loading -> {
+                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator()
                     }
                 }
-            }
 
-            is OrdersUiState.Loaded -> {
-                if (state.orders.isEmpty()) {
+                is OrdersUiState.NotSignedIn -> {
                     EmptyState(
-                        title = "No orders yet",
-                        subtitle = "When you place an order, it'll show up here."
+                        title = "Sign in to see your orders",
+                        subtitle = "Your order history will show up here once you're signed in."
                     )
-                } else {
-                    LazyColumn(
-                        modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(16.dp)
+                }
+
+                is OrdersUiState.Error -> {
+                    Column(
+                        modifier = Modifier.fillMaxSize().padding(32.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
                     ) {
-                        items(state.orders) { order ->
-                            OrderCard(order)
-                            Spacer(Modifier.height(12.dp))
+                        Text(
+                            "Couldn't load your orders",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            textAlign = TextAlign.Center
+                        )
+                        Spacer(Modifier.height(4.dp))
+                        Text(
+                            state.message,
+                            fontSize = 13.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            textAlign = TextAlign.Center
+                        )
+                        Spacer(Modifier.height(16.dp))
+                        Button(onClick = { reloadKey++ }) {
+                            Text("Retry")
+                        }
+                    }
+                }
+
+                is OrdersUiState.Loaded -> {
+                    if (state.orders.isEmpty()) {
+                        EmptyState(
+                            title = "No orders yet",
+                            subtitle = "When you place an order, it'll show up here."
+                        )
+                    } else {
+                        LazyColumn(
+                            modifier = Modifier.fillMaxSize(),
+                            contentPadding = PaddingValues(16.dp)
+                        ) {
+                            items(state.orders, key = { it.id }) { order ->
+                                OrderCard(order)
+                                Spacer(Modifier.height(12.dp))
+                            }
                         }
                     }
                 }
             }
         }
-    }
     }
 }
 

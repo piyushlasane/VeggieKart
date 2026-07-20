@@ -1,6 +1,7 @@
 package com.project.veggiekart.screens
 
 import android.app.Activity
+import androidx.activity.ComponentActivity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -45,6 +46,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -65,7 +67,7 @@ import kotlinx.coroutines.tasks.await
 fun CheckoutScreen(
     modifier: Modifier = Modifier,
     navController: NavHostController,
-    cartViewModel: CartViewModel = viewModel(),
+    cartViewModel: CartViewModel = viewModel(LocalContext.current as ComponentActivity),
     orderViewModel: OrderViewModel = viewModel()
 ) {
     val context = LocalContext.current
@@ -156,7 +158,7 @@ fun CheckoutScreen(
                                 Text("Deliver to", fontSize = 18.sp, fontWeight = FontWeight.Bold)
                                 Spacer(Modifier.height(8.dp))
                             }
-                            items(addresses) { address ->
+                            items(addresses, key = { it.id }) { address ->
                                 AddressSelectRow(
                                     address = address,
                                     selected = address.id == selectedAddressId,
@@ -170,12 +172,17 @@ fun CheckoutScreen(
                                 Text("Order Summary", fontSize = 18.sp, fontWeight = FontWeight.Bold)
                                 Spacer(Modifier.height(8.dp))
                             }
-                            items(cartState.items) { cartItem ->
+                            items(cartState.items, key = { it.product.id }) { cartItem ->
                                 Row(
                                     modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
                                     horizontalArrangement = Arrangement.SpaceBetween
                                 ) {
-                                    Text("${cartItem.product.title} x${cartItem.quantity}")
+                                    Text(
+                                        "${cartItem.product.title} x${cartItem.quantity}",
+                                        modifier = Modifier.weight(1f).padding(end = 8.dp),
+                                        maxLines = 2,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
                                     val lineTotal = (cartItem.product.actualPrice.toDoubleOrNull() ?: 0.0) * cartItem.quantity
                                     Text("₹${"%.2f".format(lineTotal)}")
                                 }
@@ -185,8 +192,8 @@ fun CheckoutScreen(
                         CheckoutBottomBar(
                             totalAmount = cartState.totalAmount,
                             isProcessing = checkoutState is CheckoutState.CreatingOrder ||
-                                checkoutState is CheckoutState.AwaitingPayment ||
-                                checkoutState is CheckoutState.VerifyingPayment,
+                                    checkoutState is CheckoutState.AwaitingPayment ||
+                                    checkoutState is CheckoutState.VerifyingPayment,
                             pendingPaymentId = (checkoutState as? CheckoutState.PaymentSucceededPendingVerification)?.paymentId,
                             onPayNow = {
                                 val selectedAddress = addresses.find { it.id == selectedAddressId }

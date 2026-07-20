@@ -165,7 +165,7 @@ fun ManageAddressesScreen(modifier: Modifier = Modifier, navController: NavHostC
                         .padding(paddingValues)
                         .padding(horizontal = 16.dp)
                 ) {
-                    items(addresses) { address ->
+                    items(addresses, key = { it.id }) { address ->
                         AddressCard(
                             address = address,
                             isUpdating = isUpdating,
